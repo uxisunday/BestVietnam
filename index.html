@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnam Travel Map 2026</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-icon">🇻🇳</span>
+                <span class="brand-text">VoyageMap</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="map">
+                    <span class="nav-icon">🗺️</span>
+                    <span class="nav-text">Vietnam Map</span>
+                </button>
+                <button class="nav-item" data-tab="weather">
+                    <span class="nav-icon">🌤️</span>
+                    <span class="nav-text">Weather</span>
+                </button>
+                <button class="nav-item" data-tab="routes">
+                    <span class="nav-icon">🛤️</span>
+                    <span class="nav-text">Routes</span>
+                </button>
+                <button class="nav-item" data-tab="notes">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Notes</span>
+                </button>
+                <button class="nav-item" data-tab="expenses">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Траты</span>
+                </button>
+                <button class="nav-item" data-tab="planner">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Планнер</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <small>Vietnam 2026 • Prototype</small>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main">
+            <!-- Dashboard -->
+            <section class="tab active" id="tab-dashboard">
+                <header class="page-header">
+                    <h1>🇻🇳 Vietnam Travel Dashboard</h1>
+                </header>
+                <div class="dashboard-grid">
+                    <!-- Trip dates -->
+                    <div class="card compact">
+                        <div class="card-header">
+                            <div class="card-label">ПЛАНИРУЕМАЯ ПОЕЗДКА</div>
+                            <span class="card-icon">✈️</span>
+                        </div>
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-value" id="trip-days">91</span>
+                                <span class="metric-unit">дней</span>
+                            </div>
+                            <div class="date-pair">
+                                <div class="date-input-group">
+                                    <span class="date-label">Старт</span>
+                                    <input type="date" id="trip-start" value="2026-09-01">
+                                </div>
+                                <span class="date-arrow">→</span>
+                                <div class="date-input-group">
+                                    <span class="date-label">Финиш</span>
+                                    <input type="date" id="trip-end" value="2026-11-30">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer" id="trip-to-start">До старта: 44 дня</div>
+                    </div>
+
+                    <!-- Visa -->
+                    <div class="card compact visa-card">
+                        <div class="card-header">
+                            <div class="card-label">ВИЗА</div>
+                            <span class="card-icon">🛂</span>
+                        </div>
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-value" id="visa-remaining">—</span>
+                                <span class="metric-unit">дней осталось</span>
+                            </div>
+                            <div class="visa-inputs">
+                                <div class="date-input-group">
+                                    <span class="date-label">Оформлена</span>
+                                    <input type="date" id="visa-date">
+                                </div>
+                                <div class="date-input-group">
+                                    <span class="date-label">Срок, дн</span>
+                                    <input type="number" id="visa-days" min="1" value="90">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer" id="visa-end-date">—</div>
+                    </div>
+
+                    <!-- Vietnam time -->
+                    <div class="card compact time-card">
+                        <div class="card-header">
+                            <div class="card-label">ВРЕМЯ ВО ВЬЕТНАМЕ</div>
+                            <span class="card-icon">🌏</span>
+                        </div>
+                        <div class="time-clock" id="time-vietnam">--:--</div>
+                        <div class="time-date" id="date-vietnam">--</div>
+                    </div>
+
+                    <!-- Moscow time -->
+                    <div class="card compact time-card">
+                        <div class="card-header">
+                            <div class="card-label">ВРЕМЯ В МОСКВЕ</div>
+                            <span class="card-icon">🇷🇺</span>
+                        </div>
+                        <div class="time-clock" id="time-moscow">--:--</div>
+                        <div class="time-date" id="date-moscow">--</div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card wide budget-card">
+                        <div class="budget-card-header">
+                            <div class="budget-title">
+                                <div class="card-label">БЮДЖЕТ ПОЕЗДКИ</div>
+                                <div class="budget-summary">
+                                    <span class="budget-spent" id="spent-amount">₽0</span>
+                                    <span class="budget-total">из <span id="total-budget">₽600 000</span></span>
+                                </div>
+                            </div>
+                            <div class="budget-status">
+                                <div class="budget-remaining" id="budget-remaining">Осталось: ₽600 000</div>
+                                <div class="rate-note" id="budget-rate-note">1 ₽ ≈ 280 ₫</div>
+                            </div>
+                        </div>
+
+                        <div class="budget-progress">
+                            <div class="budget-progress-bar" id="budget-progress-bar" style="width: 0%;"></div>
+                        </div>
+
+                        <div class="budget-body">
+                            <div class="budget-categories" id="budget-categories">
+                                <div style="color: var(--text-secondary); font-size: 13px;">Пока нет трат</div>
+                            </div>
+                            <div class="budget-actions">
+                                <button class="btn btn-primary" onclick="switchTab('expenses')">💰 Управлять тратами</button>
+                                <button class="btn btn-secondary" onclick="editBudget()">✏️ Изменить бюджет</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card wide">
+                        <div id="dashboard-planner-banner"></div>
+                        <div class="card-label">БЫСТРЫЕ ДЕЙСТВИЯ</div>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" onclick="switchTab('map')">Открыть карту</button>
+                            <button class="btn btn-secondary" onclick="switchTab('routes')">Планировать маршрут</button>
+                            <button class="btn btn-secondary" onclick="switchTab('notes')">Мои заметки</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-grid">
+                    <div class="card wide">
+                        <div class="card-label">О ПРОЕКТЕ</div>
+                        <p>Интерактивная карта Вьетнама для планирования длительного путешествия. Маркеры с русскими и вьетнамскими названиями, фото, погода, маршруты и личные заметки.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vietnam Map -->
+            <section class="tab" id="tab-map">
+                <header class="page-header compact">
+                    <h1>🗺️ Карта Вьетнама</h1>
+                    <div class="map-toolbar">
+                        <div class="map-search">
+                            <input type="text" id="map-search" placeholder="Найти город, достопримечательность, пляж..." autocomplete="off">
+                            <button class="btn btn-secondary" id="map-search-btn">🔍</button>
+                        </div>
+                        <div class="layer-controls">
+                            <label><input type="checkbox" class="layer-toggle" data-layer="cities" checked> Города</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="attractions" checked> Достопримечательности</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="beaches" checked> Пляжи</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="transport" checked> Аэропорты/Порты</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="routes"> Маршруты</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="boundaries" checked> Границы стран</label>
+                        </div>
+                    </div>
+                </header>
+                <div id="map" class="map-container"></div>
+
+                <!-- Плавающая панель построения маршрута -->
+                <div class="route-builder-panel" id="route-builder-panel">
+                    <div class="builder-header">
+                        <div class="card-label">КОНСТРУКТОР МАРШРУТА</div>
+                        <button class="btn-icon" onclick="toggleRouteBuilder()">✕</button>
+                    </div>
+
+                    <div class="builder-status" id="builder-status">Загрузка...</div>
+
+                    <input type="text" id="new-route-name" placeholder="Название, например: Поездка к водопадам">
+                    <input type="date" id="new-route-date">
+                    <textarea id="new-route-desc" rows="2" placeholder="Описание маршрута..."></textarea>
+
+                    <div class="builder-section">
+                        <div class="section-label">Точки маршрута</div>
+                        <div id="route-waypoints-list" class="waypoints-list">
+                            <div class="waypoints-empty">Правый клик на карте → «Добавить точку»</div>
+                        </div>
+                        <button class="btn btn-sm btn-secondary" id="clear-waypoints">Очистить точки</button>
+                    </div>
+
+                    <div class="builder-actions">
+                        <button class="btn btn-primary" id="build-route">🛣️ Построить по дорогам</button>
+                        <button class="btn btn-success" id="save-built-route" disabled>💾 Сохранить маршрут</button>
+                    </div>
+
+                    <div class="route-info" id="route-info"></div>
+                </div>
+
+                <!-- Кнопка открытия панели, если свёрнута -->
+                <button class="builder-toggle" id="builder-toggle" onclick="toggleRouteBuilder()">🛣️ Маршрут</button>
+
+                <div id="map-context-menu" class="map-context-menu hidden">
+                    <div class="context-item" data-action="waypoint">➕ Добавить точку маршрута</div>
+                    <div class="context-item" data-action="google">🔍 Искать в Google Maps</div>
+                </div>
+
+                <div id="map-search-results" class="map-search-results hidden"></div>
+            </section>
+
+            <!-- Weather -->
+            <section class="tab" id="tab-weather">
+                <header class="page-header">
+                    <h1>🌤️ Погода</h1>
+                    <p class="subtitle">Выберите город на карте или из списка</p>
+                </header>
+                <div class="weather-layout">
+                    <div class="weather-sidebar">
+                        <div class="search-box">
+                            <input type="text" id="weather-search" placeholder="Найти город...">
+                        </div>
+                        <div class="weather-list" id="weather-list"></div>
+                    </div>
+                    <div class="weather-content" id="weather-detail">
+                        <div class="empty-state">
+                            <span class="empty-icon">🌦️</span>
+                            <p>Выберите город, чтобы увидеть прогноз погоды на 7 дней</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Routes -->
+            <section class="tab" id="tab-routes">
+                <header class="page-header">
+                    <h1>🛤️ Маршруты</h1>
+                    <p class="subtitle">Ваши маршруты, планировка и идеи для поездок</p>
+                </header>
+
+                <div class="routes-layout-v2">
+                    <!-- Левая колонка: мои маршруты + быстрое добавление -->
+                    <div class="routes-main">
+                        <div class="routes-toolbar">
+                            <div class="routes-title">
+                                <span class="card-label">МОИ МАРШРУТЫ</span>
+                                <p style="color: var(--text-secondary); font-size: 13px; margin-top: 6px;">Создавайте маршруты на карте или быстро между городами.</p>
+                            </div>
+                            <div class="routes-quick-add">
+                                <select id="route-from"></select>
+                                <span class="route-arrow">→</span>
+                                <select id="route-to"></select>
+                                <button class="btn btn-primary" id="add-route">Добавить</button>
+                            </div>
+                        </div>
+
+                        <div class="routes-list-v2" id="saved-routes"></div>
+                    </div>
+
+                    <!-- Правая колонка: детальный редактор -->
+                    <div class="routes-detail" id="route-detail">
+                        <div class="empty-state">
+                            <span class="empty-icon">🛤️</span>
+                            <p>Выберите маршрут слева, чтобы отредактировать детали, фото, даты и заметки.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Блок идей для поездок: сворачиваемый accordion с каруселью круизов -->
+                <div class="cruises-section" id="cruises-section">
+                    <button class="cruises-toggle" onclick="toggleCruisesSection()">
+                        <span class="cruises-toggle-title">🚢 Идеи для поездок: круизы, экскурсии и буклеты</span>
+                        <span class="cruises-toggle-icon" id="cruises-toggle-icon">▾</span>
+                    </button>
+
+                    <div class="cruises-content" id="cruises-content">
+                        <div class="cruises-intro">
+                            <p>Вдохновение для маршрутов: официальные круизы по бухтам и рекам, а также места, куда можно добавить свои буклеты и ссылки.</p>
+                            <button class="btn btn-secondary" onclick="openCruiseForm()">➕ Добавить буклет/ссылку</button>
+                        </div>
+
+                        <div class="carousel-wrapper">
+                            <button class="carousel-btn prev" onclick="moveCarousel(-1)">‹</button>
+                            <div class="carousel-track" id="cruise-carousel"></div>
+                            <button class="carousel-btn next" onclick="moveCarousel(1)">›</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Planner -->
+            <section class="tab" id="tab-planner">
+                <header class="page-header">
+                    <h1>📅 Планнер поездки</h1>
+                    <p class="subtitle">Ближайшие события, маршруты и напоминания</p>
+                </header>
+                <div class="planner-layout">
+                    <div class="planner-sidebar">
+                        <div class="card">
+                            <div class="card-label">НАПОМИНАНИЯ</div>
+                            <div id="planner-reminders">
+                                <div class="empty-state-small">
+                                    <p>Запланируйте маршрут с датой, чтобы увидеть напоминания.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="planner-content">
+                        <h3 style="margin-bottom: 16px;">Все запланированные маршруты</h3>
+                        <div id="planner-list" class="planner-list"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Notes -->
+            <section class="tab" id="tab-notes">
+                <header class="page-header">
+                    <h1>📝 Заметки</h1>
+                    <p class="subtitle">Личные заметки о городах и местах</p>
+                </header>
+                <div class="notes-layout">
+                    <div class="notes-sidebar">
+                        <div class="search-box">
+                            <input type="text" id="notes-search" placeholder="Найти заметку...">
+                        </div>
+                        <div id="notes-list"></div>
+                    </div>
+                    <div class="notes-content" id="notes-editor">
+                        <div class="empty-state">
+                            <span class="empty-icon">📝</span>
+                            <p>Выберите город, чтобы добавить или отредактировать заметку</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Expenses -->
+            <section class="tab" id="tab-expenses">
+                <header class="page-header">
+                    <h1>💰 Траты</h1>
+                    <p class="subtitle">Учёт расходов по категориям во время путешествия</p>
+                </header>
+                <div class="expenses-layout">
+                    <div class="expenses-sidebar">
+                        <div class="budget-summary-card">
+                            <div class="card-label">ОБЩИЙ БЮДЖЕТ (₽)</div>
+                            <div class="big" id="expenses-total-budget">₽600 000</div>
+                            <div class="budget-progress">
+                                <div class="budget-progress-bar" id="expenses-progress-bar" style="width: 0%;"></div>
+                            </div>
+                            <div style="margin-top: 12px; color: var(--text-secondary); font-size: 13px;">
+                                Потрачено: <strong id="expenses-spent">₽0</strong>
+                                <br>
+                                Осталось: <strong id="expenses-remaining">₽600 000</strong>
+                            </div>
+                            <div class="rate-note" id="expenses-rate-note">Курс: 1 ₽ ≈ 280 ₫</div>
+                            <button class="btn btn-secondary" style="margin-top: 16px;" onclick="editBudget()">✏️ Изменить бюджет</button>
+                        </div>
+
+                        <div class="expense-form-card">
+                            <div class="card-label">ДОБАВИТЬ ТРАТУ</div>
+                            <form id="expense-form">
+                                <label for="expense-name">Название</label>
+                                <input type="text" id="expense-name" placeholder="Например: Ужин в Ханое" required>
+
+                                <label for="expense-amount">Сумма (VND, ₫)</label>
+                                <input type="number" id="expense-amount" placeholder="0" min="0" step="1" required>
+
+                                <label for="expense-category">Категория</label>
+                                <select id="expense-category" required>
+                                    <option value="food">🍽️ Еда</option>
+                                    <option value="accommodation">🏠 Жильё</option>
+                                    <option value="transport">🚌 Транспорт</option>
+                                    <option value="flights">✈️ Перелёты</option>
+                                    <option value="entertainment">🎭 Развлечения</option>
+                                    <option value="shopping">🛍️ Шопинг</option>
+                                    <option value="health">🏥 Медицина/страховка</option>
+                                    <option value="visa">🛂 Визы/документы</option>
+                                    <option value="other">📦 Другое</option>
+                                </select>
+
+                                <label for="expense-date">Дата</label>
+                                <input type="date" id="expense-date" required>
+
+                                <label for="expense-notes">Примечание (необязательно)</label>
+                                <input type="text" id="expense-notes" placeholder="Где, с кем, детали...">
+
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">➕ Добавить трату</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="expenses-content">
+                        <div class="expenses-stats">
+                            <div class="stat-card">
+                                <div class="stat-label">Всего трат</div>
+                                <div class="stat-value" id="expense-count">0</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Средняя трата</div>
+                                <div class="stat-value" id="expense-average">0 ₫</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Крупнейшая категория</div>
+                                <div class="stat-value" id="top-category">—</div>
+                            </div>
+                        </div>
+
+                        <h3 style="margin-bottom: 16px;">Траты по категориям</h3>
+                        <div class="expense-categories-chart" id="expense-categories-chart"></div>
+
+                        <h3 style="margin: 24px 0 16px;">История трат</h3>
+                        <div class="expenses-list" id="expenses-list">
+                            <div class="empty-state">
+                                <span class="empty-icon">💸</span>
+                                <p>Пока нет трат. Добавьте первую слева.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section class="tab" id="tab-settings">
+                <header class="page-header">
+                    <h1>⚙️ Настройки</h1>
+                </header>
+                <div class="settings-grid">
+                    <div class="card">
+                        <div class="card-label">ДАННЫЕ</div>
+                        <button class="btn btn-secondary" onclick="exportNotes()">Экспорт заметок</button>
+                        <button class="btn btn-secondary" onclick="importNotes()">Импорт заметок</button>
+                        <button class="btn btn-danger" onclick="clearNotes()">Очистить заметки</button>
+                        <hr style="border-color: var(--border); margin: 16px 0;">
+                        <button class="btn btn-secondary" onclick="exportExpenses()">Экспорт трат</button>
+                        <button class="btn btn-secondary" onclick="importExpenses()">Импорт трат</button>
+                        <button class="btn btn-danger" onclick="clearExpenses()">Очистить траты</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">МАРШРУТИЗАЦИЯ</div>
+                        <p style="margin-bottom: 12px; color: var(--text-secondary); font-size: 13px;">
+                            По умолчанию маршруты строятся через бесплатный OSRM. Для более точных расчётов можно указать ключ OpenRouteService.
+                        </p>
+                        <label for="ors-api-key" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; display: block;">OpenRouteService API key</label>
+                        <input type="password" id="ors-api-key" placeholder="не обязательно" style="width: 100%; margin-bottom: 10px;">
+                        <button class="btn btn-secondary" onclick="saveORSApiKey()" style="width: 100%;">Сохранить ключ</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">О ПРИЛОЖЕНИИ</div>
+                        <p>Версия: 0.3.0 Prototype</p>
+                        <p>Стек: HTML/CSS/JS, Leaflet.js, OpenStreetMap, Open-Meteo API, OSRM</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Lightbox для фото маршрутов -->
+    <div id="route-lightbox" class="route-lightbox hidden" onclick="closeRouteLightbox()">
+        <button class="lightbox-close" onclick="closeRouteLightbox()">✕</button>
+        <img id="lightbox-img" src="" alt="Фото маршрута">
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/weather.js"></script>
+    <script src="js/notes.js"></script>
+    <script src="js/routes.js"></script>
+    <script src="js/expenses.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
