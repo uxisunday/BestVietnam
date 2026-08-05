@@ -6,22 +6,45 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth();
 });
 
+// Кэш всех данных, загруженных из облака
+window.window.appData = {
+    settings: null,
+    expenses: null,
+    routes: null,
+    cruises: null,
+    notes: null
+};
+
+async function loadAllData() {
+    updateSyncIndicator('Загрузка данных...');
+    const [settings, expenses, routes, cruises, notes] = await Promise.all([
+        getSettings(),
+        getExpenses(),
+        getUserRoutes(),
+        getCustomCruises(),
+        getNotes()
+    ]);
+
+    window.appData = { settings, expenses, routes, cruises, notes };
+    updateSyncIndicator('Синхронизировано');
+    setTimeout(() => updateSyncIndicator(''), 2000);
+    return window.appData;
+}
+
 // Инициализация приложения после успешной авторизации
 async function initAppAfterAuth() {
     await migrateLocalDataToCloud();
+    await loadAllData();
+
     initTabs();
     initMap();
     initWeather();
     initNotes();
     initRoutes();
     initExpenses();
-    await initDashboard();
+    initDashboard();
     initPlanner();
-
-    // Также рендерим пользовательские маршруты на карте
-    setTimeout(() => {
-        renderUserRoutesOnMap();
-    }, 500);
+    renderUserRoutesOnMap();
 }
 
 // Переключение вкладок
@@ -75,7 +98,7 @@ const DEFAULT_TRIP_END = '2026-11-30';
 const DEFAULT_VISA_DAYS = 90;
 
 async function initDashboard() {
-    cachedSettings = await getSettings();
+    cachedSettings = window.appData.settings;
     setupTripInputs();
     setupVisaInputs();
     updateTripCard();

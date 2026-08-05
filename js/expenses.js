@@ -44,7 +44,7 @@ async function initExpenses() {
         });
     }
 
-    await updateBudgetUI();
+    await updateBudgetUI(true);
     await updateExpensesUI();
 }
 
@@ -146,39 +146,39 @@ function addExpense() {
         return;
     }
 
-    getExpenses().then(async (expenses) => {
-        expenses.push({
-            id: 'exp-' + Date.now(),
-            name,
-            amount,
-            category,
-            date,
-            notes,
-            createdAt: new Date().toISOString()
-        });
-
-        await saveExpenses(expenses);
-
-        // Очистить форму
-        nameInput.value = '';
-        amountInput.value = '';
-        notesInput.value = '';
-        dateInput.valueAsDate = new Date();
-
-        updateBudgetUI();
-        updateExpensesUI();
+    const expenses = window.appData.expenses || [];
+    expenses.push({
+        id: 'exp-' + Date.now(),
+        name,
+        amount,
+        category,
+        date,
+        notes,
+        createdAt: new Date().toISOString()
     });
+
+    window.appData.expenses = expenses;
+    await saveExpenses(expenses);
+
+    // Очистить форму
+    nameInput.value = '';
+    amountInput.value = '';
+    notesInput.value = '';
+    dateInput.valueAsDate = new Date();
+
+    await updateBudgetUI(true);
+    await updateExpensesUI();
 }
 
-function deleteExpense(id) {
+async function deleteExpense(id) {
     if (!confirm('Удалить эту трату?')) return;
 
-    getExpenses().then(async (expenses) => {
-        const filtered = expenses.filter(e => e.id !== id);
-        await saveExpenses(filtered);
-        updateBudgetUI();
-        updateExpensesUI();
-    });
+    const filtered = window.appData.expenses.filter(e => e.id !== id);
+    window.appData.expenses = filtered;
+    await saveExpenses(filtered);
+
+    await updateBudgetUI(true);
+    await updateExpensesUI();
 }
 
 async function getTotalSpent() {
@@ -210,9 +210,10 @@ async function getTopCategory() {
     return top ? `${EXPENSE_CATEGORIES[top].label} — ${formatVnd(max)}` : '—';
 }
 
-async function updateBudgetUI() {
-    const budgetRub = await getBudget();
-    const spentVnd = await getTotalSpent();
+async function updateBudgetUI(useCached = false) {
+    const budgetRub = useCached ? (window.appData.settings?.budgetRub || 600000) : await getBudget();
+    const expenses = useCached ? window.appData.expenses : await getExpenses();
+    const spentVnd = expenses.reduce((sum, e) => sum + e.amount, 0);
     const spentRub = vndToRub(spentVnd);
     const remainingRub = budgetRub - spentRub;
     const percent = Math.min((spentRub / budgetRub) * 100, 100);
@@ -241,7 +242,10 @@ async function updateBudgetUI() {
 
     // Категории на дашборде (в рублях)
     if (categoriesEl) {
-        const byCategory = await getExpensesByCategory();
+        const byCategory = {};
+        expenses.forEach(e => {
+            byCategory[e.category] = (byCategory[e.category] || 0) + e.amount;
+        });
         const sorted = Object.entries(byCategory)
             .map(([cat, vnd]) => [cat, vndToRub(vnd)])
             .sort((a, b) => b[1] - a[1])
@@ -277,19 +281,35 @@ async function updateBudgetUI() {
 }
 
 async function updateExpensesUI() {
-    const expenses = await getExpenses();
+    const expenses = window.appData.expenses;
     const list = document.getElementById('expenses-list');
     const countEl = document.getElementById('expense-count');
     const averageEl = document.getElementById('expense-average');
     const topCategoryEl = document.getElementById('top-category');
     const chart = document.getElementById('expense-categories-chart');
 
+    const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+
     if (countEl) countEl.textContent = expenses.length;
     if (averageEl) {
-        const avg = expenses.length > 0 ? getTotalSpent() / expenses.length : 0;
+        const avg = expenses.length > 0 ? totalSpent / expenses.length : 0;
         averageEl.textContent = formatVnd(avg);
     }
-    if (topCategoryEl) topCategoryEl.textContent = getTopCategory();
+    if (topCategoryEl) {
+        const byCategory = {};
+        expenses.forEach(e => {
+            byCategory[e.category] = (byCategory[e.category] || 0) + e.amount;
+        });
+        let top = null;
+        let max = 0;
+        Object.entries(byCategory).forEach(([category, amount]) => {
+            if (amount > max) {
+                max = amount;
+                top = category;
+            }
+        });
+        topCategoryEl.textContent = top ? `${EXPENSE_CATEGORIES[top].label} — ${formatVnd(max)}` : '—';
+    }
 
     // Список трат
     if (list) {
