@@ -128,7 +128,7 @@ function __localSaveExpenses(expenses) {
     }
 }
 
-function addExpense() {
+async function addExpense() {
     const nameInput = document.getElementById('expense-name');
     const amountInput = document.getElementById('expense-amount');
     const categoryInput = document.getElementById('expense-category');
