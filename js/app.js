@@ -40,11 +40,11 @@ async function initAppAfterAuth() {
     initMap();
     initWeather();
     initNotes();
-    initRoutes();
-    initExpenses();
-    initDashboard();
-    initPlanner();
-    renderUserRoutesOnMap();
+    await initRoutes();
+    await initExpenses();
+    await initDashboard();
+    await initPlanner();
+    await renderUserRoutesOnMap();
 }
 
 // Переключение вкладок

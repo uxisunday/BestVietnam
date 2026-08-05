@@ -8,9 +8,9 @@ const CUSTOM_CRUISES_KEY = 'vietnam_map_custom_cruises';
 let editingRouteId = null;
 let carouselOffset = 0;
 
-function initRoutes() {
-    renderCruiseCarousel();
-    renderUserRoutes();
+async function initRoutes() {
+    await renderUserRoutes();
+    await renderCruiseCarousel();
     populateRouteSelects();
 
     const addBtn = document.getElementById('add-route');
