@@ -2,7 +2,7 @@
 // AUTH: логин + ключевое слово, JWT-токен
 // ============================================
 
-const API_URL = 'https://bestvietnam-sync.YOUR_SUBDOMAIN.workers.dev'; // ЗАМЕНИТЬ ПРИ ДЕПЛОЕ
+const API_URL = 'https://bestvi.bestvietnam-sync-morning.workers.dev'; // ЗАМЕНИТЬ ПРИ ДЕПЛОЕ
 const TOKEN_KEY = 'bestvn_token';
 const LOGIN_KEY = 'bestvn_login';
 
