@@ -125,7 +125,7 @@ async function saveExpenses(expenses) {
 // -----------------------------
 async function getBudget() {
     const settings = await getSettings();
-    return settings.budgetRub || 600000;
+    return settings?.budgetRub || 600000;
 }
 
 async function setBudget(amount) {

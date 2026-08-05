@@ -256,17 +256,18 @@ function declineDaysRemaining(n) {
 // ПЛАННЕР
 // ============================================
 
-function initPlanner() {
-    renderPlanner();
-    updateDashboardPlannerBanner();
+async function initPlanner() {
+    await renderPlanner();
+    await updateDashboardPlannerBanner();
 }
 
-function renderPlanner() {
+async function renderPlanner() {
     const remindersEl = document.getElementById('planner-reminders');
     const listEl = document.getElementById('planner-list');
     if (!listEl) return;
 
-    const routes = getUserRoutes()
+    const userRoutes = await getUserRoutes();
+    const routes = (Array.isArray(userRoutes) ? userRoutes : [])
         .filter(r => r.date)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -362,11 +363,12 @@ function formatDurationForPlanner(seconds) {
     return `${h} ч ${m} мин`;
 }
 
-function updateDashboardPlannerBanner() {
+async function updateDashboardPlannerBanner() {
     const container = document.getElementById('dashboard-planner-banner');
     if (!container) return;
 
-    const routes = getUserRoutes()
+    const userRoutes = await getUserRoutes();
+    const routes = (Array.isArray(userRoutes) ? userRoutes : [])
         .filter(r => r.date)
         .sort((a, b) => new Date(a.date) - new Date(b.date));
 
