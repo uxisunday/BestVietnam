@@ -8,7 +8,30 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="app">
+    <!-- Экран входа -->
+    <div id="login-screen" class="login-screen hidden">
+        <div class="login-card">
+            <div class="login-header">
+                <span class="brand-icon" style="font-size: 48px;">🇻🇳</span>
+                <h1>VoyageMap</h1>
+                <p>Вход в общий планировщик путешествия</p>
+            </div>
+            <form id="login-form" class="login-form">
+                <label for="login-input">Логин</label>
+                <input type="text" id="login-input" placeholder="Например: vietnam2026" required autocomplete="username">
+
+                <label for="passphrase-input">Ключевое слово / пароль</label>
+                <input type="password" id="passphrase-input" placeholder="Ваш секретный ключ" required autocomplete="current-password">
+
+                <div id="login-error" class="login-error" style="display: none;"></div>
+
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px;">🔐 Войти</button>
+            </form>
+            <p class="login-hint">Один логин для двоих. Любой из вас может редактировать общие данные.</p>
+        </div>
+    </div>
+
+    <div class="app" style="display: none;">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
@@ -482,8 +505,13 @@
                     </div>
                     <div class="card">
                         <div class="card-label">О ПРИЛОЖЕНИИ</div>
-                        <p>Версия: 0.3.0 Prototype</p>
-                        <p>Стек: HTML/CSS/JS, Leaflet.js, OpenStreetMap, Open-Meteo API, OSRM</p>
+                        <p>Версия: 0.4.0 Sync</p>
+                        <p>Стек: HTML/CSS/JS, Leaflet.js, OpenStreetMap, Open-Meteo API, OSRM, Cloudflare Workers + D1</p>
+                        <div id="sync-indicator" class="sync-indicator" style="margin-top: 12px;"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">АККАУНТ</div>
+                        <button class="btn btn-danger" id="logout-btn" style="width: 100%;">🚪 Выйти</button>
                     </div>
                 </div>
             </section>
@@ -498,6 +526,8 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/sync.js"></script>
     <script src="js/map.js"></script>
     <script src="js/weather.js"></script>
     <script src="js/notes.js"></script>

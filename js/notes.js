@@ -15,7 +15,9 @@ function initNotes() {
     }
 }
 
-function getNotes() {
+// getNotes/saveNotes/getNoteText/setNoteText теперь определены в js/sync.js
+// Эти fallback-функции оставлены для обратной совместимости
+function __localGetNotes() {
     try {
         const saved = localStorage.getItem(NOTES_STORAGE_KEY);
         return saved ? JSON.parse(saved) : {};
@@ -25,7 +27,7 @@ function getNotes() {
     }
 }
 
-function saveNotes(notes) {
+function __localSaveNotes(notes) {
     try {
         localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
     } catch (error) {
@@ -33,27 +35,27 @@ function saveNotes(notes) {
     }
 }
 
-function getNoteText(itemId) {
-    const notes = getNotes();
+async function getNoteText(itemId) {
+    const notes = await getNotes();
     return notes[itemId] || '';
 }
 
-function setNoteText(itemId, text) {
-    const notes = getNotes();
+async function setNoteText(itemId, text) {
+    const notes = await getNotes();
     if (text.trim()) {
         notes[itemId] = text.trim();
     } else {
         delete notes[itemId];
     }
-    saveNotes(notes);
+    await saveNotes(notes);
     renderNotesList();
 }
 
-function renderNotesList() {
+async function renderNotesList() {
     const list = document.getElementById('notes-list');
     if (!list) return;
 
-    const notes = getNotes();
+    const notes = await getNotes();
     const allItems = getAllNoteItems();
 
     // Сортируем: сначала с заметками, потом без
@@ -88,16 +90,17 @@ function getAllNoteItems() {
     ];
 }
 
-function filterNotesList(query) {
+async function filterNotesList(query) {
     const items = document.querySelectorAll('.notes-list-item');
     const lowerQuery = query.toLowerCase();
+    const notes = await getNotes();
 
     items.forEach(el => {
         const id = el.dataset.id;
         const item = findItemById(id);
         if (!item) return;
 
-        const noteText = getNoteText(id).toLowerCase();
+        const noteText = (notes[id] || '').toLowerCase();
         const match = item.name.toLowerCase().includes(lowerQuery) ||
                       item.nameViet.toLowerCase().includes(lowerQuery) ||
                       noteText.includes(lowerQuery);
@@ -105,7 +108,7 @@ function filterNotesList(query) {
     });
 }
 
-function selectNoteItem(itemId) {
+async function selectNoteItem(itemId) {
     const item = findItemById(itemId);
     if (!item) return;
 
@@ -116,7 +119,7 @@ function selectNoteItem(itemId) {
     const editor = document.getElementById('notes-editor');
     if (!editor) return;
 
-    const currentNote = getNoteText(itemId);
+    const currentNote = await getNoteText(itemId);
 
     editor.innerHTML = `
         <div class="notes-editor-form">
@@ -133,11 +136,11 @@ function selectNoteItem(itemId) {
     `;
 }
 
-function saveNoteFor(itemId) {
+async function saveNoteFor(itemId) {
     const textarea = document.getElementById('note-text');
     if (!textarea) return;
 
-    setNoteText(itemId, textarea.value);
+    await setNoteText(itemId, textarea.value);
 
     // Показать подтверждение
     const editor = document.getElementById('notes-editor');
@@ -149,12 +152,10 @@ function saveNoteFor(itemId) {
     setTimeout(() => confirmMsg.remove(), 2000);
 }
 
-function deleteNoteFor(itemId) {
+async function deleteNoteFor(itemId) {
     if (!confirm('Удалить заметку?')) return;
 
-    const notes = getNotes();
-    delete notes[itemId];
-    saveNotes(notes);
+    await setNoteText(itemId, '');
     renderNotesList();
 
     const editor = document.getElementById('notes-editor');
@@ -188,18 +189,19 @@ function escapeHtml(text) {
 
 // Экспорт/импорт заметок
 function exportNotes() {
-    const notes = getNotes();
-    const dataStr = JSON.stringify(notes, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    getNotes().then(notes => {
+        const dataStr = JSON.stringify(notes, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vietnam-notes-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vietnam-notes-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
 }
 
 function importNotes() {
@@ -212,11 +214,11 @@ function importNotes() {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             try {
                 const imported = JSON.parse(event.target.result);
                 if (typeof imported === 'object') {
-                    saveNotes(imported);
+                    await saveNotes(imported);
                     renderNotesList();
                     alert('Заметки импортированы успешно!');
                 }
@@ -230,9 +232,9 @@ function importNotes() {
     input.click();
 }
 
-function clearNotes() {
+async function clearNotes() {
     if (!confirm('Удалить ВСЕ заметки? Это действие нельзя отменить.')) return;
-    saveNotes({});
+    await saveNotes({});
     renderNotesList();
     document.getElementById('notes-editor').innerHTML = `
         <div class="empty-state">

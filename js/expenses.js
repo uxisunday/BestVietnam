@@ -25,7 +25,7 @@ const EXPENSE_CATEGORIES = {
 
 const DEFAULT_BUDGET_RUB = 600000;
 
-function initExpenses() {
+async function initExpenses() {
     // Загрузить актуальный курс VND/RUB
     loadExchangeRate();
 
@@ -44,8 +44,8 @@ function initExpenses() {
         });
     }
 
-    updateBudgetUI();
-    updateExpensesUI();
+    await updateBudgetUI();
+    await updateExpensesUI();
 }
 
 async function loadExchangeRate() {
@@ -99,7 +99,9 @@ function updateRateNote() {
     });
 }
 
-function getBudget() {
+// getBudget/getExpenses/saveExpenses/setBudget теперь определены в js/sync.js
+// Эти обёртки оставлены для обратной совместимости и fallback
+function __localGetBudget() {
     try {
         const saved = localStorage.getItem(BUDGET_STORAGE_KEY);
         return saved ? parseFloat(saved) : DEFAULT_BUDGET_RUB;
@@ -108,17 +110,7 @@ function getBudget() {
     }
 }
 
-function setBudget(amount) {
-    try {
-        localStorage.setItem(BUDGET_STORAGE_KEY, amount.toString());
-        updateBudgetUI();
-        updateExpensesUI();
-    } catch (error) {
-        console.error('Budget save error:', error);
-    }
-}
-
-function getExpenses() {
+function __localGetExpenses() {
     try {
         const saved = localStorage.getItem(EXPENSES_STORAGE_KEY);
         return saved ? JSON.parse(saved) : [];
@@ -128,7 +120,7 @@ function getExpenses() {
     }
 }
 
-function saveExpenses(expenses) {
+function __localSaveExpenses(expenses) {
     try {
         localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(expenses));
     } catch (error) {
@@ -154,52 +146,57 @@ function addExpense() {
         return;
     }
 
-    const expenses = getExpenses();
-    expenses.push({
-        id: 'exp-' + Date.now(),
-        name,
-        amount,
-        category,
-        date,
-        notes,
-        createdAt: new Date().toISOString()
+    getExpenses().then(async (expenses) => {
+        expenses.push({
+            id: 'exp-' + Date.now(),
+            name,
+            amount,
+            category,
+            date,
+            notes,
+            createdAt: new Date().toISOString()
+        });
+
+        await saveExpenses(expenses);
+
+        // Очистить форму
+        nameInput.value = '';
+        amountInput.value = '';
+        notesInput.value = '';
+        dateInput.valueAsDate = new Date();
+
+        updateBudgetUI();
+        updateExpensesUI();
     });
-
-    saveExpenses(expenses);
-
-    // Очистить форму
-    nameInput.value = '';
-    amountInput.value = '';
-    notesInput.value = '';
-    dateInput.valueAsDate = new Date();
-
-    updateBudgetUI();
-    updateExpensesUI();
 }
 
 function deleteExpense(id) {
     if (!confirm('Удалить эту трату?')) return;
 
-    const expenses = getExpenses().filter(e => e.id !== id);
-    saveExpenses(expenses);
-    updateBudgetUI();
-    updateExpensesUI();
+    getExpenses().then(async (expenses) => {
+        const filtered = expenses.filter(e => e.id !== id);
+        await saveExpenses(filtered);
+        updateBudgetUI();
+        updateExpensesUI();
+    });
 }
 
-function getTotalSpent() {
-    return getExpenses().reduce((sum, e) => sum + e.amount, 0);
+async function getTotalSpent() {
+    const expenses = await getExpenses();
+    return expenses.reduce((sum, e) => sum + e.amount, 0);
 }
 
-function getExpensesByCategory() {
+async function getExpensesByCategory() {
     const result = {};
-    getExpenses().forEach(e => {
+    const expenses = await getExpenses();
+    expenses.forEach(e => {
         result[e.category] = (result[e.category] || 0) + e.amount;
     });
     return result;
 }
 
-function getTopCategory() {
-    const byCategory = getExpensesByCategory();
+async function getTopCategory() {
+    const byCategory = await getExpensesByCategory();
     let top = null;
     let max = 0;
 
@@ -213,9 +210,9 @@ function getTopCategory() {
     return top ? `${EXPENSE_CATEGORIES[top].label} — ${formatVnd(max)}` : '—';
 }
 
-function updateBudgetUI() {
-    const budgetRub = getBudget();
-    const spentVnd = getTotalSpent();
+async function updateBudgetUI() {
+    const budgetRub = await getBudget();
+    const spentVnd = await getTotalSpent();
     const spentRub = vndToRub(spentVnd);
     const remainingRub = budgetRub - spentRub;
     const percent = Math.min((spentRub / budgetRub) * 100, 100);
@@ -244,7 +241,7 @@ function updateBudgetUI() {
 
     // Категории на дашборде (в рублях)
     if (categoriesEl) {
-        const byCategory = getExpensesByCategory();
+        const byCategory = await getExpensesByCategory();
         const sorted = Object.entries(byCategory)
             .map(([cat, vnd]) => [cat, vndToRub(vnd)])
             .sort((a, b) => b[1] - a[1])
@@ -279,8 +276,8 @@ function updateBudgetUI() {
     }
 }
 
-function updateExpensesUI() {
-    const expenses = getExpenses();
+async function updateExpensesUI() {
+    const expenses = await getExpenses();
     const list = document.getElementById('expenses-list');
     const countEl = document.getElementById('expense-count');
     const averageEl = document.getElementById('expense-average');
@@ -325,8 +322,8 @@ function updateExpensesUI() {
 
     // График категорий
     if (chart) {
-        const byCategory = getExpensesByCategory();
-        const total = getTotalSpent();
+        const byCategory = await getExpensesByCategory();
+        const total = await getTotalSpent();
         const sorted = Object.entries(byCategory).sort((a, b) => b[1] - a[1]);
 
         if (sorted.length === 0) {
@@ -350,17 +347,21 @@ function updateExpensesUI() {
 }
 
 function editBudget() {
-    const currentBudget = getBudget();
-    const newBudget = prompt('Введите общий бюджет поездки (₽):', currentBudget);
+    getBudget().then(currentBudget => {
+        const newBudget = prompt('Введите общий бюджет поездки (₽):', currentBudget);
 
-    if (newBudget !== null && newBudget !== '') {
-        const amount = parseFloat(newBudget.replace(/\s/g, '').replace(/,/g, '.'));
-        if (!isNaN(amount) && amount > 0) {
-            setBudget(amount);
-        } else {
-            alert('Введите корректную сумму');
+        if (newBudget !== null && newBudget !== '') {
+            const amount = parseFloat(newBudget.replace(/\s/g, '').replace(/,/g, '.'));
+            if (!isNaN(amount) && amount > 0) {
+                setBudget(amount).then(() => {
+                    updateBudgetUI();
+                    updateExpensesUI();
+                });
+            } else {
+                alert('Введите корректную сумму');
+            }
         }
-    }
+    });
 }
 
 function formatDateRu(dateStr) {
@@ -370,18 +371,19 @@ function formatDateRu(dateStr) {
 
 // Экспорт/импорт трат
 function exportExpenses() {
-    const expenses = getExpenses();
-    const dataStr = JSON.stringify(expenses, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    getExpenses().then(expenses => {
+        const dataStr = JSON.stringify(expenses, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vietnam-expenses-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `vietnam-expenses-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
 }
 
 function importExpenses() {
@@ -394,11 +396,11 @@ function importExpenses() {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (event) => {
+        reader.onload = async (event) => {
             try {
                 const imported = JSON.parse(event.target.result);
                 if (Array.isArray(imported)) {
-                    saveExpenses(imported);
+                    await saveExpenses(imported);
                     updateBudgetUI();
                     updateExpensesUI();
                     alert('Траты импортированы успешно!');
@@ -415,7 +417,8 @@ function importExpenses() {
 
 function clearExpenses() {
     if (!confirm('Удалить ВСЕ траты? Это действие нельзя отменить.')) return;
-    saveExpenses([]);
-    updateBudgetUI();
-    updateExpensesUI();
+    saveExpenses([]).then(() => {
+        updateBudgetUI();
+        updateExpensesUI();
+    });
 }

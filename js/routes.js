@@ -19,7 +19,9 @@ function initRoutes() {
     }
 }
 
-function getUserRoutes() {
+// getUserRoutes/saveUserRoutes/getCustomCruises/saveCustomCruises теперь в js/sync.js
+// Локальные fallback-функции для обратной совместимости
+function __localGetUserRoutes() {
     try {
         const saved = localStorage.getItem(ROUTES_STORAGE_KEY);
         return saved ? JSON.parse(saved) : [];
@@ -29,7 +31,7 @@ function getUserRoutes() {
     }
 }
 
-function saveUserRoutes(routes) {
+function __localSaveUserRoutes(routes) {
     try {
         localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(routes));
     } catch (error) {
@@ -37,7 +39,7 @@ function saveUserRoutes(routes) {
     }
 }
 
-function getCustomCruises() {
+function __localGetCustomCruises() {
     try {
         const saved = localStorage.getItem(CUSTOM_CRUISES_KEY);
         return saved ? JSON.parse(saved) : [];
@@ -47,7 +49,7 @@ function getCustomCruises() {
     }
 }
 
-function saveCustomCruises(cruises) {
+function __localSaveCustomCruises(cruises) {
     try {
         localStorage.setItem(CUSTOM_CRUISES_KEY, JSON.stringify(cruises));
     } catch (error) {
@@ -120,12 +122,12 @@ function getGetYourGuideUrl(route) {
     return `https://www.getyourguide.com/ru-ru/${slug}/`;
 }
 
-function renderCruiseCarousel() {
+async function renderCruiseCarousel() {
     const track = document.getElementById('cruise-carousel');
     if (!track) return;
 
     const builtIn = VIETNAM_DATA.routes.filter(r => r.type === 'cruise' || r.type === 'info');
-    const custom = getCustomCruises();
+    const custom = await getCustomCruises();
     const allCruises = [...builtIn, ...custom];
 
     if (allCruises.length === 0) {
@@ -214,7 +216,7 @@ function openCruiseForm() {
     `;
 }
 
-function saveCustomCruise() {
+async function saveCustomCruise() {
     const nameInput = document.getElementById('cruise-name');
     const descInput = document.getElementById('cruise-desc');
     const urlInput = document.getElementById('cruise-url');
@@ -230,7 +232,7 @@ function saveCustomCruise() {
         return;
     }
 
-    const cruises = getCustomCruises();
+    const cruises = await getCustomCruises();
     cruises.push({
         id: 'custom-cruise-' + Date.now(),
         name,
@@ -242,7 +244,7 @@ function saveCustomCruise() {
         type: 'info'
     });
 
-    saveCustomCruises(cruises);
+    await saveCustomCruises(cruises);
     renderCruiseCarousel();
     closeRouteDetail();
     showRouteNotification('🚢 Идея для поездки сохранена');
@@ -262,7 +264,7 @@ function populateRouteSelects() {
     toSelect.innerHTML = `<option value="">Куда</option>${options}`;
 }
 
-function addUserRoute() {
+async function addUserRoute() {
     const fromSelect = document.getElementById('route-from');
     const toSelect = document.getElementById('route-to');
 
@@ -299,9 +301,9 @@ function addUserRoute() {
         notes: ''
     };
 
-    const routes = getUserRoutes();
+    const routes = await getUserRoutes();
     routes.push(newRoute);
-    saveUserRoutes(routes);
+    await saveUserRoutes(routes);
     renderUserRoutes();
     updatePlanner();
     editUserRoute(newRoute.id);
@@ -310,11 +312,11 @@ function addUserRoute() {
     toSelect.value = '';
 }
 
-function deleteUserRoute(routeId) {
+async function deleteUserRoute(routeId) {
     if (!confirm('Удалить этот маршрут?')) return;
 
-    const routes = getUserRoutes().filter(r => r.id !== routeId);
-    saveUserRoutes(routes);
+    const routes = (await getUserRoutes()).filter(r => r.id !== routeId);
+    await saveUserRoutes(routes);
     renderUserRoutes();
     closeRouteDetail();
     updatePlanner();
@@ -355,9 +357,10 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
-function editUserRoute(routeId) {
+async function editUserRoute(routeId) {
     editingRouteId = routeId;
-    const route = getUserRoutes().find(r => r.id === routeId);
+    const routes = await getUserRoutes();
+    const route = routes.find(r => r.id === routeId);
     if (!route) return;
 
     const detail = document.getElementById('route-detail');
@@ -478,8 +481,8 @@ function closeRouteDetail() {
     editingRouteId = null;
 }
 
-function saveRouteChanges(routeId) {
-    const routes = getUserRoutes();
+async function saveRouteChanges(routeId) {
+    const routes = await getUserRoutes();
     const route = routes.find(r => r.id === routeId);
     if (!route) return;
 
@@ -508,17 +511,17 @@ function saveRouteChanges(routeId) {
     if (plannedDurationInput) route.plannedDuration = parseDurationInput(plannedDurationInput.value);
     if (actualDurationInput) route.actualDuration = parseDurationInput(actualDurationInput.value);
 
-    saveUserRoutes(routes);
+    await saveUserRoutes(routes);
     renderUserRoutes();
     updatePlanner();
     showRouteNotification('💾 Маршрут обновлён');
 }
 
-function handleRoutePhotos(event, routeId) {
+async function handleRoutePhotos(event, routeId) {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const routes = getUserRoutes();
+    const routes = await getUserRoutes();
     const route = routes.find(r => r.id === routeId);
     if (!route) return;
 
@@ -530,21 +533,21 @@ function handleRoutePhotos(event, routeId) {
         });
     });
 
-    Promise.all(readers).then(photos => {
+    Promise.all(readers).then(async (photos) => {
         route.photos = route.photos || [];
         route.photos.push(...photos);
-        saveUserRoutes(routes);
+        await saveUserRoutes(routes);
         editUserRoute(routeId);
     });
 }
 
-function deleteRoutePhoto(routeId, index) {
-    const routes = getUserRoutes();
+async function deleteRoutePhoto(routeId, index) {
+    const routes = await getUserRoutes();
     const route = routes.find(r => r.id === routeId);
     if (!route || !route.photos) return;
 
     route.photos.splice(index, 1);
-    saveUserRoutes(routes);
+    await saveUserRoutes(routes);
     editUserRoute(routeId);
 }
 
@@ -561,11 +564,11 @@ function closeRouteLightbox() {
     if (lightbox) lightbox.classList.add('hidden');
 }
 
-function renderUserRoutes() {
+async function renderUserRoutes() {
     const container = document.getElementById('saved-routes');
     if (!container) return;
 
-    const routes = getUserRoutes();
+    const routes = await getUserRoutes();
 
     if (routes.length === 0) {
         container.innerHTML = `
@@ -605,10 +608,11 @@ function renderUserRoutes() {
     }).join('');
 }
 
-function highlightRouteOnMap(routeId) {
+async function highlightRouteOnMap(routeId) {
     switchTab('map');
 
-    const allRoutes = [...VIETNAM_DATA.routes, ...getUserRoutes(), ...getCustomCruises()];
+    const [userRoutes, customCruises] = await Promise.all([getUserRoutes(), getCustomCruises()]);
+    const allRoutes = [...VIETNAM_DATA.routes, ...userRoutes, ...customCruises];
     const route = allRoutes.find(r => r.id === routeId);
     if (!route) return;
 
@@ -655,8 +659,9 @@ function highlightRouteOnMap(routeId) {
     }
 }
 
-function renderUserRoutesOnMap() {
-    getUserRoutes().forEach(route => {
+async function renderUserRoutesOnMap() {
+    const routes = await getUserRoutes();
+    routes.forEach(route => {
         if (route.geometry && Array.isArray(route.geometry) && route.geometry.length > 0) {
             const line = L.polyline(route.geometry, {
                 color: '#ff6b8a',

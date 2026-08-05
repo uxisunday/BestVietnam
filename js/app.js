@@ -3,20 +3,26 @@
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    initAuth();
+});
+
+// Инициализация приложения после успешной авторизации
+async function initAppAfterAuth() {
+    await migrateLocalDataToCloud();
     initTabs();
     initMap();
     initWeather();
     initNotes();
     initRoutes();
     initExpenses();
-    initDashboard();
+    await initDashboard();
     initPlanner();
 
     // Также рендерим пользовательские маршруты на карте
     setTimeout(() => {
         renderUserRoutesOnMap();
     }, 500);
-});
+}
 
 // Переключение вкладок
 function initTabs() {
@@ -62,11 +68,14 @@ const TRIP_END_KEY = 'vietnam_map_trip_end';
 const VISA_DATE_KEY = 'vietnam_map_visa_date';
 const VISA_DAYS_KEY = 'vietnam_map_visa_days';
 
+let cachedSettings = null;
+
 const DEFAULT_TRIP_START = '2026-09-01';
 const DEFAULT_TRIP_END = '2026-11-30';
 const DEFAULT_VISA_DAYS = 90;
 
-function initDashboard() {
+async function initDashboard() {
+    cachedSettings = await getSettings();
     setupTripInputs();
     setupVisaInputs();
     updateTripCard();
@@ -79,15 +88,17 @@ function setupTripInputs() {
     const endInput = document.getElementById('trip-end');
     if (!startInput || !endInput) return;
 
-    startInput.value = localStorage.getItem(TRIP_START_KEY) || DEFAULT_TRIP_START;
-    endInput.value = localStorage.getItem(TRIP_END_KEY) || DEFAULT_TRIP_END;
+    startInput.value = cachedSettings?.tripStart || DEFAULT_TRIP_START;
+    endInput.value = cachedSettings?.tripEnd || DEFAULT_TRIP_END;
 
-    const save = () => {
+    const save = async () => {
         const start = startInput.value;
         const end = endInput.value;
         if (start && end && start <= end) {
-            localStorage.setItem(TRIP_START_KEY, start);
-            localStorage.setItem(TRIP_END_KEY, end);
+            cachedSettings = cachedSettings || {};
+            cachedSettings.tripStart = start;
+            cachedSettings.tripEnd = end;
+            await saveSettings(cachedSettings);
             updateTripCard();
         }
     };
@@ -101,12 +112,14 @@ function setupVisaInputs() {
     const daysInput = document.getElementById('visa-days');
     if (!dateInput || !daysInput) return;
 
-    dateInput.value = localStorage.getItem(VISA_DATE_KEY) || '';
-    daysInput.value = localStorage.getItem(VISA_DAYS_KEY) || DEFAULT_VISA_DAYS;
+    dateInput.value = cachedSettings?.visaDate || '';
+    daysInput.value = cachedSettings?.visaDays || DEFAULT_VISA_DAYS;
 
-    const save = () => {
-        localStorage.setItem(VISA_DATE_KEY, dateInput.value);
-        localStorage.setItem(VISA_DAYS_KEY, daysInput.value);
+    const save = async () => {
+        cachedSettings = cachedSettings || {};
+        cachedSettings.visaDate = dateInput.value;
+        cachedSettings.visaDays = daysInput.value;
+        await saveSettings(cachedSettings);
         updateVisaCard();
     };
 
@@ -395,16 +408,19 @@ function updateDashboardPlannerBanner() {
     `;
 }
 
-function saveORSApiKey() {
+async function saveORSApiKey() {
     const input = document.getElementById('ors-api-key');
     if (!input) return;
     const key = input.value.trim();
+    cachedSettings = await getSettings();
     if (!key) {
-        localStorage.removeItem('vietnam_map_ors_key');
+        cachedSettings.orsKey = '';
+        await saveSettings(cachedSettings);
         updateRouteBuilderStatus();
         alert('Ключ удалён. Будет использоваться бесплатный OSRM.');
     } else {
-        localStorage.setItem('vietnam_map_ors_key', key);
+        cachedSettings.orsKey = key;
+        await saveSettings(cachedSettings);
         updateRouteBuilderStatus();
         alert('Ключ OpenRouteService сохранён. ORS теперь приоритетный маршрутизатор.');
     }
@@ -449,3 +465,5 @@ window.openCruiseForm = openCruiseForm;
 window.saveCustomCruise = saveCustomCruise;
 window.openRouteLightbox = openRouteLightbox;
 window.closeRouteLightbox = closeRouteLightbox;
+window.initAppAfterAuth = initAppAfterAuth;
+window.initAuth = initAuth;

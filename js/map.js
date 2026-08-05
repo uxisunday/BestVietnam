@@ -450,7 +450,7 @@ function handleContextAction(action, coords) {
 // КОНСТРУКТОР МАРШРУТОВ
 // ============================================
 
-function initRouteBuilder() {
+async function initRouteBuilder() {
     const dateInput = document.getElementById('new-route-date');
     if (dateInput) dateInput.valueAsDate = new Date();
 
@@ -462,14 +462,15 @@ function initRouteBuilder() {
     if (buildBtn) buildBtn.addEventListener('click', buildRouteOnRoads);
     if (saveBtn) saveBtn.addEventListener('click', saveBuiltRoute);
 
-    updateRouteBuilderStatus();
+    await updateRouteBuilderStatus();
 }
 
-function updateRouteBuilderStatus() {
+async function updateRouteBuilderStatus() {
     const el = document.getElementById('builder-status');
     if (!el) return;
 
-    const orsKey = localStorage.getItem('vietnam_map_ors_key');
+    const settings = await getSettings();
+    const orsKey = settings?.orsKey || '';
     if (orsKey) {
         el.textContent = 'ORS — премиум маршрутизатор активен';
         el.classList.add('ors-active');
@@ -612,7 +613,8 @@ async function buildRouteOnRoads() {
         showRouteNotification(`🛣️ Маршрут построен (${engineLabel}): ${distanceKm} км, ~${durationH} ч ${durationM} мин`);
     } catch (error) {
         console.error('Route build error:', error);
-        const orsKey = localStorage.getItem('vietnam_map_ors_key');
+        const settings = await getSettings();
+        const orsKey = settings?.orsKey || '';
         const rawMsg = error.message || 'unknown error';
         const errorHint = rawMsg.includes('ORS')
             ? 'ORS вернул ошибку; попробуйте удалить ключ в Settings → OpenRouteService или нажмите кнопку ниже, чтобы построить через бесплатный OSRM.'
@@ -693,8 +695,10 @@ async function fetchRouteFromORS(waypoints, apiKey) {
     };
 }
 
-function clearORSKeyAndRebuild() {
-    localStorage.removeItem('vietnam_map_ors_key');
+async function clearORSKeyAndRebuild() {
+    const settings = await getSettings();
+    settings.orsKey = '';
+    await saveSettings(settings);
     updateRouteBuilderStatus();
     buildRouteOnRoads();
 }
@@ -756,7 +760,7 @@ function clearBuiltRoute() {
     if (infoEl) infoEl.innerHTML = '';
 }
 
-function saveBuiltRoute() {
+async function saveBuiltRoute() {
     const nameInput = document.getElementById('new-route-name');
     const dateInput = document.getElementById('new-route-date');
     const descInput = document.getElementById('new-route-desc');
@@ -788,9 +792,9 @@ function saveBuiltRoute() {
         createdAt: new Date().toISOString()
     };
 
-    const routes = getUserRoutes();
+    const routes = await getUserRoutes();
     routes.push(newRoute);
-    saveUserRoutes(routes);
+    await saveUserRoutes(routes);
 
     clearRouteWaypoints();
     if (nameInput) nameInput.value = '';
