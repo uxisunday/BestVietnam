@@ -988,14 +988,23 @@ function focusOnUserNote(noteId) {
 function setNotePickerMode(on, onPick) {
     notePickerActive = !!on;
     notePickerCallback = onPick || null;
+    console.log('[note-picker] setNotePickerMode', { on, hasMap: !!map });
     const container = document.getElementById('map');
-    if (!container) return;
+    if (!container) {
+        console.warn('[note-picker] #map container not found');
+        return;
+    }
     if (notePickerActive) {
         container.classList.add('note-picker-cursor');
-        // показываем индикатор
+        if (map) {
+            map.getContainer().style.cursor = 'crosshair';
+        }
         showRouteNotification('📍 Кликните по карте, чтобы выбрать точку. Esc — отмена.');
     } else {
         container.classList.remove('note-picker-cursor');
+        if (map) {
+            map.getContainer().style.cursor = '';
+        }
     }
 }
 
@@ -1009,6 +1018,7 @@ function openNoteInApp(noteId) {
 // Глобальный обработчик клика по карте — в режиме выбора точки
 // (навешивается один раз при initMap, см. ниже)
 function onMapClickForNotePicker(e) {
+    console.log('[note-picker] map click', { active: notePickerActive, hasCb: !!notePickerCallback });
     if (!notePickerActive) return;
     const coords = [e.latlng.lat, e.latlng.lng];
     setNotePickerMode(false);
