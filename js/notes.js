@@ -754,13 +754,19 @@ function focusOnNote(noteId) {
 
 function startNotePicker() {
     // переключаемся на карту и включаем режим выбора точки
-    if (typeof window.setNotePickerMode === 'function') {
+    if (typeof window.setNotePickerMode !== 'function') {
+        alert('Карта ещё не инициализирована. Откройте вкладку карты и подождите.');
+        return;
+    }
+    if (typeof switchTab === 'function') {
+        switchTab('map');
+    }
+    // включаем режим выбора с задержкой, чтобы карта успела отрисоваться
+    setTimeout(() => {
         window.setNotePickerMode(true, (coords) => {
             setDraftCoords(coords);
         });
-    } else {
-        alert('Карта ещё не инициализирована. Откройте вкладку карты и подождите.');
-    }
+    }, 250);
 }
 
 async function syncNoteMarkers() {
