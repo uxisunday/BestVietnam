@@ -215,12 +215,22 @@
                             <input type="text" id="map-search" placeholder="Найти город, достопримечательность, пляж..." autocomplete="off">
                             <button class="btn btn-secondary" id="map-search-btn">🔍</button>
                         </div>
+                        <button class="btn btn-secondary btn-pin-add" id="map-add-pin-btn" type="button">📍 Добавить метку</button>
                         <div class="layer-controls">
                             <label><input type="checkbox" class="layer-toggle" data-layer="cities" checked> Города</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="attractions" checked> Достопримечательности</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="beaches" checked> Пляжи</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="transport" checked> Аэропорты/Порты</label>
-                            <label><input type="checkbox" class="layer-toggle" data-layer="user-notes" checked> 📌 Мои заметки</label>
+
+                            <div class="layer-group">
+                                <div class="layer-group-title">Мои метки:</div>
+                                <label class="pin-toggle pin-toggle-want-to-visit"><input type="checkbox" class="layer-toggle" data-layer="pin-want-to-visit" checked> ⭐ Хочу побывать</label>
+                                <label class="pin-toggle pin-toggle-visited"><input type="checkbox" class="layer-toggle" data-layer="pin-visited" checked> ✅ Уже были</label>
+                                <label class="pin-toggle pin-toggle-food"><input type="checkbox" class="layer-toggle" data-layer="pin-food" checked> 🍴 Еда</label>
+                                <label class="pin-toggle pin-toggle-housing"><input type="checkbox" class="layer-toggle" data-layer="pin-housing" checked> 🏨 Жильё</label>
+                                <label class="pin-toggle pin-toggle-note"><input type="checkbox" class="layer-toggle" data-layer="pin-note" checked> 📌 Заметки</label>
+                            </div>
+
                             <label><input type="checkbox" class="layer-toggle" data-layer="routes"> Маршруты</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="boundaries" checked> Границы стран</label>
                         </div>
@@ -266,6 +276,53 @@
                 </div>
 
                 <div id="map-search-results" class="map-search-results hidden"></div>
+
+                <!-- Модалка создания цветной метки -->
+                <div id="pin-create-modal" class="pin-create-modal" hidden>
+                    <div class="pin-create-backdrop" onclick="closePinCreateModal()"></div>
+                    <div class="pin-create-card" role="dialog" aria-modal="true" aria-labelledby="pin-create-title-text">
+                        <div class="pin-create-header">
+                            <h3 id="pin-create-title-text">📍 Новая метка</h3>
+                            <button type="button" class="pin-create-close" onclick="closePinCreateModal()" aria-label="Закрыть">✕</button>
+                        </div>
+
+                        <div class="pin-type-picker" role="radiogroup" aria-label="Тип метки">
+                            <button type="button" class="pin-type-btn pin-type-want-to-visit" data-type="want-to-visit" onclick="setActivePinType('want-to-visit')" title="Хочу побывать" aria-label="Хочу побывать">⭐</button>
+                            <button type="button" class="pin-type-btn pin-type-visited" data-type="visited" onclick="setActivePinType('visited')" title="Уже были" aria-label="Уже были">✅</button>
+                            <button type="button" class="pin-type-btn pin-type-food" data-type="food" onclick="setActivePinType('food')" title="Еда" aria-label="Еда">🍴</button>
+                            <button type="button" class="pin-type-btn pin-type-housing" data-type="housing" onclick="setActivePinType('housing')" title="Жильё" aria-label="Жильё">🏨</button>
+                            <button type="button" class="pin-type-btn pin-type-note" data-type="note" onclick="setActivePinType('note')" title="Заметка" aria-label="Заметка">📌</button>
+                        </div>
+
+                        <label class="pin-form-field">
+                            <span class="pin-form-label">Заголовок:</span>
+                            <input type="text" id="pin-create-title" placeholder="например, Храм Литературы" maxlength="80">
+                        </label>
+
+                        <label class="pin-form-field">
+                            <span class="pin-form-label">Адрес:</span>
+                            <div class="pin-address-row">
+                                <input type="text" id="pin-create-address" placeholder="Определяется автоматически...">
+                                <button type="button" class="btn btn-sm btn-secondary" id="pin-refresh-addr" onclick="refreshPinAddress()" title="Обновить адрес">🔄</button>
+                            </div>
+                        </label>
+
+                        <label class="pin-form-field">
+                            <span class="pin-form-label">Заметка:</span>
+                            <textarea id="pin-create-body" rows="3" placeholder="Время работы, особенности, цены..."></textarea>
+                        </label>
+
+                        <label class="pin-form-checkbox">
+                            <input type="checkbox" id="pin-create-add-note">
+                            <span>Также создать полноценную заметку</span>
+                        </label>
+
+                        <div class="pin-create-actions">
+                            <button type="button" class="btn btn-primary" onclick="savePin()">💾 Сохранить</button>
+                            <button type="button" class="btn btn-secondary" onclick="closePinCreateModal()">Отмена</button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Weather -->

@@ -39,7 +39,7 @@ function initMap() {
         center: VIETNAM_DATA.center,
         zoom: VIETNAM_DATA.zoom,
         minZoom: 5,
-        maxZoom: 16
+        maxZoom: 19
     });
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -53,12 +53,19 @@ function initMap() {
         maxZoom: 19
     });
 
+    const stamenTonerLite = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: 'abcd',
+        maxZoom: 18
+    });
+
     const baseMaps = {
         "CartoDB Voyager": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map),
         "OpenStreetMap": osmLayer,
+        "Stamen (подписи)": stamenTonerLite,
         "Спутник": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxZoom: 18
@@ -86,6 +93,14 @@ function initMap() {
     initContextMenu();
     initRouteBuilder();
     updateDashboardCounts();
+
+    // Кнопка «Добавить метку» — переключает режим установки
+    const addPinBtn = document.getElementById('map-add-pin-btn');
+    if (addPinBtn) {
+        addPinBtn.addEventListener('click', () => {
+            setAddPinMode(!addPinMode);
+        });
+    }
 
     // Глобальная обработка Esc для отмены режима выбора точки
     document.addEventListener('keydown', onMapKeyForNotePicker);
@@ -247,6 +262,17 @@ function toggleLayer(e) {
     if (layer === 'user-notes') {
         userNoteMarkers.forEach(marker => {
             if (visible) map.addLayer(marker);
+            else map.removeLayer(marker);
+        });
+        return;
+    }
+
+    if (layer.startsWith('pin-')) {
+        const pinType = layer.slice(4);
+        userNoteMarkers.forEach(marker => {
+            const note = marker.noteData;
+            if (!note || note.pinType !== pinType) return;
+            if (visible) marker.addTo(map);
             else map.removeLayer(marker);
         });
         return;
@@ -904,11 +930,41 @@ function findItemById(id) {
 // СЛОЙ "МОИ ЗАМЕТКИ" — пользовательские точки
 // ============================================
 
+// 5 цветных типов меток
+const PIN_TYPES = {
+    'want-to-visit': { icon: '⭐', color: '#e74c3c', name: 'Хочу побывать' },
+    'visited':       { icon: '✅', color: '#27ae60', name: 'Уже были' },
+    'food':          { icon: '🍴', color: '#f1c40f', name: 'Еда' },
+    'housing':       { icon: '🏨', color: '#3498db', name: 'Жильё' },
+    'note':          { icon: '📌', color: '#9b59b6', name: 'Заметка' }
+};
+
+function getPinTypeMeta(type) {
+    return PIN_TYPES[type] || PIN_TYPES['note'];
+}
+
 let userNoteMarkers = [];      // массив L.Marker
 let notePickerActive = false;  // включён ли режим выбора точки кликом по карте
 let notePickerCallback = null; // функция, которую зовём с [lat, lng] при клике
+let addPinMode = false;        // режим добавления метки через клик по карте
+let pinDraftCoords = null;     // черновик координат для новой метки
+let pinDraftAddress = null;    // черновик адреса (из Nominatim)
+let pinDraftType = 'want-to-visit'; // выбранный тип в модалке
+let reverseGeocodeQueue = Promise.resolve(); // глобальная очередь для throttle 1 req/sec
 
-function createUserNoteIcon(icon) {
+function createUserNoteIcon(icon, pinType) {
+    // Если есть pinType — используем цветную шапку
+    if (pinType && PIN_TYPES[pinType]) {
+        const meta = PIN_TYPES[pinType];
+        return L.divIcon({
+            className: 'pin-marker',
+            html: `<div class="pin-marker-circle" style="background:${meta.color}">${meta.icon}</div>`,
+            iconSize: [34, 34],
+            iconAnchor: [17, 17],
+            popupAnchor: [0, -18]
+        });
+    }
+    // Иначе — старая иконка с emoji (для заметок без pinType)
     const symbol = icon || '📌';
     return L.divIcon({
         className: 'user-note-marker',
@@ -920,10 +976,37 @@ function createUserNoteIcon(icon) {
 }
 
 function createUserNotePopup(note) {
+    const pinMeta = note.pinType ? getPinTypeMeta(note.pinType) : null;
     const cityName = note.cityName
         || (window.VIETNAM_DATA?.cities || []).find(c => c.id === note.city)?.name
         || '';
-    const tagsHtml = (note.tags || []).slice(0, 5).map(t => `<span class="user-note-popup-tag">#${escapeHtml(t)}</span>`).join(' ');
+    const tagsHtml = (note.tags || []).filter(t => t !== 'pin').slice(0, 5).map(t => `<span class="user-note-popup-tag">#${escapeHtml(t)}</span>`).join(' ');
+
+    if (pinMeta) {
+        // Цветной popup для метки
+        return `
+            <div class="pin-popup" style="--pin-color: ${pinMeta.color}">
+                <div class="pin-popup-header" style="background:${pinMeta.color}">
+                    <span class="pin-popup-icon">${pinMeta.icon}</span>
+                    <div class="pin-popup-title">${escapeHtml(note.title || 'Без названия')}</div>
+                </div>
+                <div class="pin-popup-body">
+                    ${note.address ? `<div class="pin-popup-meta">📍 ${escapeHtml(note.address)}</div>` : ''}
+                    ${cityName && !note.address ? `<div class="pin-popup-meta">📍 ${escapeHtml(cityName)}</div>` : ''}
+                    ${note.body ? `<div class="pin-popup-text">${escapeHtml(note.body.substring(0, 200))}${note.body.length > 200 ? '…' : ''}</div>` : ''}
+                    ${tagsHtml ? `<div class="pin-popup-tags">${tagsHtml}</div>` : ''}
+                    <div class="pin-popup-date">📅 ${new Date(note.createdAt).toLocaleDateString('ru-RU')}</div>
+                </div>
+                <div class="pin-popup-actions">
+                    <button class="btn btn-sm btn-primary" onclick="openPinInGoogleMaps('${escapeHtml(note.id)}')">🗺️ Google Maps</button>
+                    <button class="btn btn-sm btn-secondary" onclick="openNoteInApp('${escapeHtml(note.id)}')">✏️</button>
+                    <button class="btn btn-sm btn-secondary" onclick="deletePin('${escapeHtml(note.id)}')">🗑</button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Старый popup для заметок без pinType
     return `
         <div style="padding: 10px; min-width: 200px; max-width: 280px;">
             <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${escapeHtml(note.title || 'Без названия')}</div>
@@ -941,8 +1024,6 @@ async function renderUserNoteMarkers(notes) {
     clearUserNoteMarkers();
 
     if (!Array.isArray(notes)) return;
-    const cats = window.DEFAULT_CATEGORIES_FROM_NOTES || []; // не обязательно
-    // Получаем категории через notes.js (там же где кэш)
     const getCat = (catId) => {
         if (typeof window.getAllCategories === 'function') {
             return window.getAllCategories().find(c => c.id === catId);
@@ -954,10 +1035,19 @@ async function renderUserNoteMarkers(notes) {
         if (!note.coords || !Array.isArray(note.coords) || note.coords.length !== 2) return;
         const cat = getCat(note.category);
         const icon = cat?.icon || '📌';
-        const marker = L.marker(note.coords, { icon: createUserNoteIcon(icon) });
+        const marker = L.marker(note.coords, { icon: createUserNoteIcon(icon, note.pinType) });
         marker.noteId = note.id;
+        marker.noteData = note;
         marker.bindPopup(createUserNotePopup(note));
         marker.addTo(map);
+
+        // Применяем текущий pin-* фильтр
+        if (note.pinType) {
+            const cb = document.querySelector(`.layer-toggle[data-layer="pin-${note.pinType}"]`);
+            if (cb && !cb.checked) {
+                map.removeLayer(marker);
+            }
+        }
         userNoteMarkers.push(marker);
     });
 }
@@ -1020,6 +1110,22 @@ function openNoteInApp(noteId) {
 // Глобальный обработчик клика по карте — в режиме выбора точки
 // (навешивается один раз при initMap, см. ниже)
 function onMapClickForNotePicker(e) {
+    // Режим создания цветной метки (приоритет)
+    if (addPinMode) {
+        setAddPinMode(false);
+        pinDraftCoords = [e.latlng.lat, e.latlng.lng];
+        showRouteNotification('⏳ Определяем адрес...');
+        reverseGeocode(e.latlng.lat, e.latlng.lng)
+            .then(addr => {
+                pinDraftAddress = addr;
+                showPinCreateModal();
+            })
+            .catch(() => {
+                pinDraftAddress = null;
+                showPinCreateModal();
+            });
+        return;
+    }
     if (!notePickerActive) return;
     const coords = [e.latlng.lat, e.latlng.lng];
     setNotePickerMode(false);
@@ -1031,10 +1137,229 @@ function onMapClickForNotePicker(e) {
 
 // Обработчик Esc для отмены режима
 function onMapKeyForNotePicker(e) {
-    if (e.key === 'Escape' && notePickerActive) {
-        setNotePickerMode(false);
-        notePickerCallback = null;
+    if (e.key === 'Escape') {
+        if (addPinMode) {
+            setAddPinMode(false);
+            return;
+        }
+        if (notePickerActive) {
+            setNotePickerMode(false);
+            notePickerCallback = null;
+        }
     }
+}
+
+// ============================================
+// ЦВЕТНЫЕ МЕТКИ — режим добавления + reverse geocoding
+// ============================================
+
+function setAddPinMode(on) {
+    addPinMode = !!on;
+    const container = document.getElementById('map');
+    if (!container || !map) return;
+    if (addPinMode) {
+        // Снимаем старый picker, если был
+        if (notePickerActive) setNotePickerMode(false);
+        container.classList.add('note-picker-cursor');
+        map.getContainer().style.cursor = 'crosshair';
+        map.once('click', onMapClickForNotePicker);
+        showRouteNotification('📍 Кликните по карте для установки метки. Esc — отмена.');
+        const btn = document.getElementById('map-add-pin-btn');
+        if (btn) btn.classList.add('active');
+    } else {
+        container.classList.remove('note-picker-cursor');
+        map.getContainer().style.cursor = '';
+        map.off('click', onMapClickForNotePicker);
+        const btn = document.getElementById('map-add-pin-btn');
+        if (btn) btn.classList.remove('active');
+    }
+}
+
+// Обратный геокодинг через Nominatim с throttling 1 req/sec
+async function reverseGeocode(lat, lng) {
+    // Throttle: 1 запрос в 1.1 сек
+    reverseGeocodeQueue = reverseGeocodeQueue.then(() => {
+        return new Promise(resolve => setTimeout(resolve, 1100));
+    });
+    await reverseGeocodeQueue;
+
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    try {
+        const res = await fetch(url, { headers: { 'Accept-Language': 'ru,en' } });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data || data.error) return null;
+        const a = data.address || {};
+        const parts = [];
+        if (a.house_number && a.road) parts.push(`${a.road}, ${a.house_number}`);
+        else if (a.road) parts.push(a.road);
+        else if (a.pedestrian) parts.push(a.pedestrian);
+        else if (a.footway) parts.push(a.footway);
+        if (a.suburb) parts.push(a.suburb);
+        if (a.city || a.town || a.village) parts.push(a.city || a.town || a.village);
+        return {
+            full: data.display_name,
+            short: parts.join(', '),
+            houseNumber: a.house_number || null,
+            street: a.road || null,
+            suburb: a.suburb || null,
+            city: a.city || a.town || a.village || null
+        };
+    } catch (e) {
+        console.warn('Reverse geocode failed:', e);
+        return null;
+    }
+}
+
+function setActivePinType(type) {
+    pinDraftType = type;
+    document.querySelectorAll('#pin-create-modal .pin-type-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+}
+
+function showPinCreateModal() {
+    const modal = document.getElementById('pin-create-modal');
+    if (!modal) return;
+    const titleInput = document.getElementById('pin-create-title');
+    const addrInput = document.getElementById('pin-create-address');
+    const bodyInput = document.getElementById('pin-create-body');
+
+    titleInput.value = '';
+    addrInput.value = pinDraftAddress?.short || '';
+    bodyInput.value = '';
+    const addNoteCb = document.getElementById('pin-create-add-note');
+    if (addNoteCb) addNoteCb.checked = false;
+
+    setActivePinType(pinDraftType);
+    modal.hidden = false;
+    setTimeout(() => titleInput.focus(), 50);
+}
+
+function closePinCreateModal() {
+    const modal = document.getElementById('pin-create-modal');
+    if (modal) modal.hidden = true;
+    pinDraftCoords = null;
+    pinDraftAddress = null;
+}
+
+async function savePin() {
+    const titleInput = document.getElementById('pin-create-title');
+    const addrInput = document.getElementById('pin-create-address');
+    const bodyInput = document.getElementById('pin-create-body');
+    const addNoteCb = document.getElementById('pin-create-add-note');
+
+    const title = (titleInput?.value || '').trim();
+    const address = (addrInput?.value || '').trim();
+    const body = (bodyInput?.value || '').trim();
+    const alsoFullNote = addNoteCb?.checked || false;
+
+    if (!title) {
+        titleInput?.focus();
+        titleInput?.classList.add('input-error');
+        setTimeout(() => titleInput?.classList.remove('input-error'), 1500);
+        return;
+    }
+    if (!pinDraftCoords) {
+        closePinCreateModal();
+        return;
+    }
+
+    const pin = {
+        id: 'note_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        title,
+        body,
+        address,
+        coords: pinDraftCoords,
+        category: pinDraftType,
+        subcategory: null,
+        tags: ['pin'],
+        city: null,
+        cityName: pinDraftAddress?.city || null,
+        pinType: pinDraftType,
+        visitDate: null,
+        photo: null,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+    };
+
+    // Сохраняем через существующее API заметок
+    const notes = await (window.getNotes ? window.getNotes() : Promise.resolve(window.appData?.notes || []));
+    notes.push(pin);
+    if (window.saveNotes) {
+        await window.saveNotes(notes);
+    } else {
+        // fallback — localStorage напрямую
+        try {
+            localStorage.setItem('vietnam_map_notes', JSON.stringify(notes));
+        } catch (e) { console.warn('savePin localStorage failed', e); }
+    }
+
+    // Обновляем кэш приложения
+    if (window.appData) {
+        window.appData.notes = notes;
+    }
+
+    closePinCreateModal();
+
+    // Синхронизируем кэш модуля заметок, если он загружен
+    if (typeof window.__syncNotesCache === 'function') {
+        try { await window.__syncNotesCache(notes); } catch (e) { /* no-op */ }
+    }
+
+    // Если из модуля заметок нужна полноценная запись — открываем редактор
+    if (alsoFullNote) {
+        if (typeof window.openNoteDraft === 'function') {
+            switchTab('notes');
+            setTimeout(() => window.openNoteDraft(pin.id), 200);
+            return;
+        }
+    }
+
+    // Иначе — просто рендерим маркер
+    if (typeof window.renderUserNoteMarkers === 'function') {
+        await window.renderUserNoteMarkers(notes);
+    }
+    focusOnUserNote(pin.id);
+}
+
+async function deletePin(noteId) {
+    if (!confirm('Удалить метку?')) return;
+    let notes = await (window.getNotes ? window.getNotes() : Promise.resolve(window.appData?.notes || []));
+    notes = notes.filter(n => n.id !== noteId);
+    if (window.saveNotes) {
+        await window.saveNotes(notes);
+    } else {
+        try { localStorage.setItem('vietnam_map_notes', JSON.stringify(notes)); } catch (e) {}
+    }
+    if (window.appData) window.appData.notes = notes;
+    if (typeof window.__syncNotesCache === 'function') {
+        try { await window.__syncNotesCache(notes); } catch (e) {}
+    }
+    if (typeof window.renderUserNoteMarkers === 'function') {
+        await window.renderUserNoteMarkers(notes);
+    }
+    showRouteNotification('🗑 Метка удалена');
+}
+
+function openPinInGoogleMaps(noteId) {
+    const notes = window.appData?.notes || [];
+    const note = notes.find(n => n.id === noteId);
+    if (!note || !note.coords) return;
+    const [lat, lng] = note.coords;
+    const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    window.open(url, '_blank');
+}
+
+async function refreshPinAddress() {
+    if (!pinDraftCoords) return;
+    const btn = document.getElementById('pin-refresh-addr');
+    if (btn) btn.disabled = true;
+    const addr = await reverseGeocode(pinDraftCoords[0], pinDraftCoords[1]);
+    pinDraftAddress = addr;
+    const input = document.getElementById('pin-create-address');
+    if (input) input.value = addr?.short || '';
+    if (btn) btn.disabled = false;
 }
 
 // ============================================
@@ -1046,3 +1371,12 @@ window.clearUserNoteMarkers = clearUserNoteMarkers;
 window.focusOnUserNote = focusOnUserNote;
 window.setNotePickerMode = setNotePickerMode;
 window.openNoteInApp = openNoteInApp;
+window.setAddPinMode = setAddPinMode;
+window.savePin = savePin;
+window.deletePin = deletePin;
+window.openPinInGoogleMaps = openPinInGoogleMaps;
+window.closePinCreateModal = closePinCreateModal;
+window.setActivePinType = setActivePinType;
+window.refreshPinAddress = refreshPinAddress;
+window.PIN_TYPES = PIN_TYPES;
+window.getPinTypeMeta = getPinTypeMeta;

@@ -451,12 +451,14 @@ function renderEditorForm(note) {
         tags: [],
         city: '',
         address: '',
-        coords: null
+        coords: null,
+        pinType: null
     } : note;
 
     const cities = (window.VIETNAM_DATA?.cities) || [];
     const subs = getAllSubcategories(n.category);
     const cat = getCategoryById(n.category);
+    const pinTypes = (window.PIN_TYPES) || {};
 
     return `
         <div class="notes-editor-form">
@@ -492,6 +494,16 @@ function renderEditorForm(note) {
                             <option value="${escapeAttr(c.name)}" data-id="${escapeAttr(c.id)}"></option>
                         `).join('')}
                     </datalist>
+                </div>
+            </div>
+
+            <div class="notes-form-row">
+                <label>Тип метки на карте <span class="hint">(если есть точка — задаёт цвет)</span></label>
+                <div class="pin-type-picker pin-type-picker-editor">
+                    <button type="button" class="pin-type-btn pin-type-none ${(!n.pinType) ? 'active' : ''}" data-type="" onclick="setEditorPinType('')" title="Без метки" aria-label="Без метки">⊘</button>
+                    ${Object.entries(pinTypes || {}).map(([type, meta]) => `
+                        <button type="button" class="pin-type-btn pin-type-${type} ${n.pinType === type ? 'active' : ''}" data-type="${type}" onclick="setEditorPinType('${type}')" title="${escapeAttr(meta.name)}" aria-label="${escapeAttr(meta.name)}">${meta.icon}</button>
+                    `).join('')}
                 </div>
             </div>
 
@@ -538,6 +550,7 @@ function getDraftNote() {
     const tags = Array.from(document.querySelectorAll('#note-tags-list .note-tag-chip'))
         .map(el => el.dataset.tag)
         .filter(Boolean);
+    const pinTypeVal = document.querySelector('.pin-type-picker-editor .pin-type-btn.active')?.dataset.type || '';
     return {
         title: document.getElementById('note-title')?.value.trim() || '',
         category: document.getElementById('note-category')?.value || 'other',
@@ -546,9 +559,17 @@ function getDraftNote() {
         cityName: document.getElementById('note-city')?.value.trim() || '',
         address: document.getElementById('note-address')?.value.trim() || '',
         body: document.getElementById('note-body')?.value.trim() || '',
-        tags
+        tags,
+        pinType: pinTypeVal || null
     };
 }
+
+// Устанавливает активный тип метки в редакторе заметки
+window.setEditorPinType = function(type) {
+    document.querySelectorAll('.pin-type-picker-editor .pin-type-btn').forEach(btn => {
+        btn.classList.toggle('active', (btn.dataset.type || '') === (type || ''));
+    });
+};
 
 // Преобразует введённое название города в id из VIETNAM_DATA, если совпало.
 // Если не совпало — возвращает null (свободный ввод).
@@ -1001,6 +1022,16 @@ window.addCustomSubcategoryPrompt = addCustomSubcategoryPrompt;
 window.removeSubcategoryPrompt = removeSubcategoryPrompt;
 window.renderNotesTree = renderNotesTree;
 window.renderNotesList = renderNotesList;
+
+// Позволяет другим модулям (map.js) синхронизировать кэш заметок
+// после изменения данных (создание/удаление метки через карту).
+// Обновляет DOM-дерево и список, чтобы новая метка сразу была видна.
+window.__syncNotesCache = async function(newNotes) {
+    if (Array.isArray(newNotes)) notesCache = newNotes;
+    if (typeof window.renderNotesTree === 'function') window.renderNotesTree();
+    if (typeof window.renderNotesList === 'function') window.renderNotesList();
+    if (typeof renderFilterChips === 'function') renderFilterChips();
+};
 window.renderFilterChips = renderFilterChips;
 window.exportNotes = exportNotes;
 window.importNotes = importNotes;
