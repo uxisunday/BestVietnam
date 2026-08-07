@@ -220,6 +220,7 @@
                             <label><input type="checkbox" class="layer-toggle" data-layer="attractions" checked> Достопримечательности</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="beaches" checked> Пляжи</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="transport" checked> Аэропорты/Порты</label>
+                            <label><input type="checkbox" class="layer-toggle" data-layer="user-notes" checked> 📌 Мои заметки</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="routes"> Маршруты</label>
                             <label><input type="checkbox" class="layer-toggle" data-layer="boundaries" checked> Границы стран</label>
                         </div>
@@ -374,20 +375,32 @@
             <section class="tab" id="tab-notes">
                 <header class="page-header">
                     <h1>📝 Заметки</h1>
-                    <p class="subtitle">Личные заметки о городах и местах</p>
+                    <p class="subtitle">Личные заметки: места, врачи, кафе, жильё — всё в одном месте</p>
                 </header>
                 <div class="notes-layout">
                     <div class="notes-sidebar">
                         <div class="search-box">
-                            <input type="text" id="notes-search" placeholder="Найти заметку...">
+                            <input type="text" id="notes-search" placeholder="Найти заметку по названию или тегу…">
                         </div>
-                        <div id="notes-list"></div>
+                        <div id="notes-tree" class="notes-tree"></div>
                     </div>
-                    <div class="notes-content" id="notes-editor">
-                        <div class="empty-state">
-                            <span class="empty-icon">📝</span>
-                            <p>Выберите город, чтобы добавить или отредактировать заметку</p>
+                    <div class="notes-content">
+                        <div class="notes-filter-bar">
+                            <div class="notes-filter-row">
+                                <span class="filter-label">📍 Город:</span>
+                                <div id="notes-filter-cities" class="filter-chips"></div>
+                            </div>
+                            <div class="notes-filter-row">
+                                <span class="filter-label">🏷️ Теги:</span>
+                                <div id="notes-filter-tags" class="filter-chips"></div>
+                            </div>
+                            <div class="notes-filter-actions">
+                                <button class="btn btn-primary" onclick="startNewNote()">➕ Добавить заметку</button>
+                            </div>
                         </div>
+                        <div id="notes-subbar" class="notes-subbar-host"></div>
+                        <div id="notes-list" class="notes-list notes-list-grid"></div>
+                        <div id="notes-editor" class="notes-editor-pane"></div>
                     </div>
                 </div>
             </section>

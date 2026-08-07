@@ -86,6 +86,10 @@ function initMap() {
     initContextMenu();
     initRouteBuilder();
     updateDashboardCounts();
+
+    // Обработчик клика по карте в режиме выбора точки для заметки
+    map.on('click', onMapClickForNotePicker);
+    document.addEventListener('keydown', onMapKeyForNotePicker);
 }
 
 async function loadCountryBoundaries() {
@@ -237,6 +241,14 @@ function toggleLayer(e) {
         Object.values(routeLines).forEach(line => {
             if (visible) map.addLayer(line);
             else map.removeLayer(line);
+        });
+        return;
+    }
+
+    if (layer === 'user-notes') {
+        userNoteMarkers.forEach(marker => {
+            if (visible) map.addLayer(marker);
+            else map.removeLayer(marker);
         });
         return;
     }
@@ -888,3 +900,138 @@ function findItemById(id) {
     ];
     return allItems.find(item => item.id === id);
 }
+
+// ============================================
+// СЛОЙ "МОИ ЗАМЕТКИ" — пользовательские точки
+// ============================================
+
+let userNoteMarkers = [];      // массив L.Marker
+let notePickerActive = false;  // включён ли режим выбора точки кликом по карте
+let notePickerCallback = null; // функция, которую зовём с [lat, lng] при клике
+
+function createUserNoteIcon(icon) {
+    const symbol = icon || '📌';
+    return L.divIcon({
+        className: 'user-note-marker',
+        html: `<div class="user-note-marker-inner">${symbol}</div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -16]
+    });
+}
+
+function createUserNotePopup(note) {
+    const cityName = note.cityName
+        || (window.VIETNAM_DATA?.cities || []).find(c => c.id === note.city)?.name
+        || '';
+    const tagsHtml = (note.tags || []).slice(0, 5).map(t => `<span class="user-note-popup-tag">#${escapeHtml(t)}</span>`).join(' ');
+    return `
+        <div style="padding: 10px; min-width: 200px; max-width: 280px;">
+            <div style="font-weight: 600; font-size: 15px; margin-bottom: 4px;">${escapeHtml(note.title || 'Без названия')}</div>
+            ${cityName ? `<div style="color: var(--accent); font-size: 12px; margin-bottom: 6px;">📍 ${escapeHtml(cityName)}</div>` : ''}
+            ${note.address ? `<div style="color: var(--text-secondary); font-size: 12px; margin-bottom: 6px;">${escapeHtml(note.address)}</div>` : ''}
+            ${note.body ? `<div style="font-size: 13px; line-height: 1.4; margin-bottom: 8px;">${escapeHtml(note.body.substring(0, 150))}${note.body.length > 150 ? '…' : ''}</div>` : ''}
+            ${tagsHtml ? `<div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">${tagsHtml}</div>` : ''}
+            <button class="btn btn-sm btn-secondary" onclick="openNoteInApp('${escapeHtml(note.id)}')">✏️ Редактировать</button>
+        </div>
+    `;
+}
+
+async function renderUserNoteMarkers(notes) {
+    if (!map) return;
+    clearUserNoteMarkers();
+
+    if (!Array.isArray(notes)) return;
+    const cats = window.DEFAULT_CATEGORIES_FROM_NOTES || []; // не обязательно
+    // Получаем категории через notes.js (там же где кэш)
+    const getCat = (catId) => {
+        if (typeof window.getAllCategories === 'function') {
+            return window.getAllCategories().find(c => c.id === catId);
+        }
+        return null;
+    };
+
+    notes.forEach(note => {
+        if (!note.coords || !Array.isArray(note.coords) || note.coords.length !== 2) return;
+        const cat = getCat(note.category);
+        const icon = cat?.icon || '📌';
+        const marker = L.marker(note.coords, { icon: createUserNoteIcon(icon) });
+        marker.noteId = note.id;
+        marker.bindPopup(createUserNotePopup(note));
+        marker.addTo(map);
+        userNoteMarkers.push(marker);
+    });
+}
+
+function clearUserNoteMarkers() {
+    userNoteMarkers.forEach(m => {
+        if (map) map.removeLayer(m);
+    });
+    userNoteMarkers = [];
+}
+
+function focusOnUserNote(noteId) {
+    const marker = userNoteMarkers.find(m => m.noteId === noteId);
+    if (!marker) {
+        // попробуем найти в кэше и обновить
+        const cache = typeof window.__getNotesCache === 'function' ? window.__getNotesCache() : [];
+        const note = cache.find(n => n.id === noteId);
+        if (note && note.coords) {
+            map.setView(note.coords, 14);
+        }
+        return;
+    }
+    map.setView(marker.getLatLng(), 14);
+    setTimeout(() => marker.openPopup(), 200);
+}
+
+function setNotePickerMode(on, onPick) {
+    notePickerActive = !!on;
+    notePickerCallback = onPick || null;
+    const container = document.getElementById('map');
+    if (!container) return;
+    if (notePickerActive) {
+        container.classList.add('note-picker-cursor');
+        // показываем индикатор
+        showRouteNotification('📍 Кликните по карте, чтобы выбрать точку. Esc — отмена.');
+    } else {
+        container.classList.remove('note-picker-cursor');
+    }
+}
+
+function openNoteInApp(noteId) {
+    if (typeof switchTab === 'function') switchTab('notes');
+    if (typeof window.openNoteDraft === 'function') {
+        setTimeout(() => window.openNoteDraft(noteId), 150);
+    }
+}
+
+// Глобальный обработчик клика по карте — в режиме выбора точки
+// (навешивается один раз при initMap, см. ниже)
+function onMapClickForNotePicker(e) {
+    if (!notePickerActive) return;
+    const coords = [e.latlng.lat, e.latlng.lng];
+    setNotePickerMode(false);
+    if (typeof notePickerCallback === 'function') {
+        notePickerCallback(coords);
+    }
+    notePickerCallback = null;
+}
+
+// Обработчик Esc для отмены режима
+function onMapKeyForNotePicker(e) {
+    if (e.key === 'Escape' && notePickerActive) {
+        setNotePickerMode(false);
+        notePickerCallback = null;
+    }
+}
+
+// ============================================
+// Глобальный экспорт
+// ============================================
+
+window.renderUserNoteMarkers = renderUserNoteMarkers;
+window.clearUserNoteMarkers = clearUserNoteMarkers;
+window.focusOnUserNote = focusOnUserNote;
+window.setNotePickerMode = setNotePickerMode;
+window.openNoteInApp = openNoteInApp;

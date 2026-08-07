@@ -17,15 +17,16 @@ window.window.appData = {
 
 async function loadAllData() {
     updateSyncIndicator('Загрузка данных...');
-    const [settings, expenses, routes, cruises, notes] = await Promise.all([
+    const [settings, expenses, routes, cruises, notes, notesCategories] = await Promise.all([
         getSettings(),
         getExpenses(),
         getUserRoutes(),
         getCustomCruises(),
-        getNotes()
+        getNotes(),
+        getNoteCategories()
     ]);
 
-    window.appData = { settings, expenses, routes, cruises, notes };
+    window.appData = { settings, expenses, routes, cruises, notes, notesCategories };
     updateSyncIndicator('Синхронизировано');
     setTimeout(() => updateSyncIndicator(''), 2000);
     return window.appData;
@@ -39,7 +40,10 @@ async function initAppAfterAuth() {
     initTabs();
     initMap();
     initWeather();
-    initNotes();
+    await initNotes();
+    if (typeof window.renderUserNoteMarkers === 'function') {
+        await window.renderUserNoteMarkers(window.appData.notes || []);
+    }
     await initRoutes();
     await initExpenses();
     await initDashboard();

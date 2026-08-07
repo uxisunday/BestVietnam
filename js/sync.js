@@ -10,6 +10,7 @@ const DATA_KEYS = {
     routes: 'vietnam_map_user_routes',
     cruises: 'vietnam_map_custom_cruises',
     notes: 'vietnam_map_notes',
+    notesCategories: 'vietnam_map_notes_categories',
     orsKey: 'vietnam_map_ors_key'
 };
 
@@ -167,19 +168,55 @@ async function saveCustomCruises(cruises) {
 }
 
 // -----------------------------
-// Notes
+// Notes (массив объектов: {id, title, body, category, subcategory, tags, city, address, coords, ...})
 // -----------------------------
 async function getNotes() {
     const cloud = await loadFromCloud('notes');
-    if (cloud !== null) return typeof cloud === 'object' ? cloud : {};
+    if (Array.isArray(cloud)) return cloud;
+    if (cloud && typeof cloud === 'object') {
+        // миграция со старого формата {itemId: text} — пропускаем, возвращаем пустой массив
+        return [];
+    }
 
     const fallback = getLocalFallback(DATA_KEYS.notes);
-    return fallback ? JSON.parse(fallback) : {};
+    if (!fallback) return [];
+    try {
+        const parsed = JSON.parse(fallback);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        return [];
+    }
 }
 
 async function saveNotes(notes) {
-    setLocalFallback(DATA_KEYS.notes, JSON.stringify(notes));
-    return await saveToCloud('notes', notes);
+    const data = Array.isArray(notes) ? notes : [];
+    setLocalFallback(DATA_KEYS.notes, JSON.stringify(data));
+    return await saveToCloud('notes', data);
+}
+
+// -----------------------------
+// Notes categories (пользовательские категории и подкатегории)
+// -----------------------------
+async function getNoteCategories() {
+    const cloud = await loadFromCloud('notesCategories');
+    if (cloud && typeof cloud === 'object') return cloud;
+
+    const fallback = getLocalFallback(DATA_KEYS.notesCategories);
+    if (fallback) {
+        try {
+            const parsed = JSON.parse(fallback);
+            if (parsed && typeof parsed === 'object') return parsed;
+        } catch (e) { /* ignore */ }
+    }
+    return { categories: [], subcategories: [] };
+}
+
+async function saveNoteCategories(cats) {
+    const data = cats && typeof cats === 'object'
+        ? cats
+        : { categories: [], subcategories: [] };
+    setLocalFallback(DATA_KEYS.notesCategories, JSON.stringify(data));
+    return await saveToCloud('notesCategories', data);
 }
 
 // -----------------------------
@@ -214,9 +251,13 @@ async function migrateLocalDataToCloud() {
     const cruises = JSON.parse(getLocalFallback(DATA_KEYS.cruises) || '[]');
     if (cruises.length > 0) await saveToCloud('cruises', cruises);
 
-    // Мигрируем notes
-    const notes = JSON.parse(getLocalFallback(DATA_KEYS.notes) || '{}');
-    if (Object.keys(notes).length > 0) await saveToCloud('notes', notes);
+    // Мигрируем notes (только если это уже массив; старый формат {itemId: text} не мигрируем)
+    try {
+        const notesRaw = JSON.parse(getLocalFallback(DATA_KEYS.notes) || '[]');
+        if (Array.isArray(notesRaw) && notesRaw.length > 0) {
+            await saveToCloud('notes', notesRaw);
+        }
+    } catch (e) { /* ignore */ }
 
     console.log('Migration to cloud completed');
 }
@@ -234,6 +275,8 @@ window.getCustomCruises = getCustomCruises;
 window.saveCustomCruises = saveCustomCruises;
 window.getNotes = getNotes;
 window.saveNotes = saveNotes;
+window.getNoteCategories = getNoteCategories;
+window.saveNoteCategories = saveNoteCategories;
 window.migrateLocalDataToCloud = migrateLocalDataToCloud;
 window.loadFromCloud = loadFromCloud;
 window.saveToCloud = saveToCloud;
