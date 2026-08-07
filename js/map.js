@@ -1014,7 +1014,6 @@ function openNoteInApp(noteId) {
 // Глобальный обработчик клика по карте — в режиме выбора точки
 // (навешивается один раз при initMap, см. ниже)
 function onMapClickForNotePicker(e) {
-    console.log('[note-picker] map click', { active: notePickerActive, hasCb: !!notePickerCallback });
     if (!notePickerActive) return;
     const coords = [e.latlng.lat, e.latlng.lng];
     setNotePickerMode(false);
