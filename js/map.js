@@ -87,8 +87,7 @@ function initMap() {
     initRouteBuilder();
     updateDashboardCounts();
 
-    // Обработчик клика по карте в режиме выбора точки для заметки
-    map.on('click', onMapClickForNotePicker);
+    // Глобальная обработка Esc для отмены режима выбора точки
     document.addEventListener('keydown', onMapKeyForNotePicker);
 }
 
