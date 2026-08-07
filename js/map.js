@@ -988,12 +988,8 @@ function focusOnUserNote(noteId) {
 function setNotePickerMode(on, onPick) {
     notePickerActive = !!on;
     notePickerCallback = onPick || null;
-    console.log('[note-picker] setNotePickerMode', { on, hasMap: !!map });
     const container = document.getElementById('map');
-    if (!container) {
-        console.warn('[note-picker] #map container not found');
-        return;
-    }
+    if (!container) return;
     if (notePickerActive) {
         container.classList.add('note-picker-cursor');
         if (map) {
