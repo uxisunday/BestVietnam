@@ -986,6 +986,7 @@ function focusOnUserNote(noteId) {
 }
 
 function setNotePickerMode(on, onPick) {
+    const wasActive = notePickerActive;
     notePickerActive = !!on;
     notePickerCallback = onPick || null;
     const container = document.getElementById('map');
@@ -994,12 +995,18 @@ function setNotePickerMode(on, onPick) {
         container.classList.add('note-picker-cursor');
         if (map) {
             map.getContainer().style.cursor = 'crosshair';
+            // Одноразовый обработчик: сработает на первый клик, затем снимется сам
+            map.once('click', onMapClickForNotePicker);
         }
         showRouteNotification('📍 Кликните по карте, чтобы выбрать точку. Esc — отмена.');
     } else {
         container.classList.remove('note-picker-cursor');
         if (map) {
             map.getContainer().style.cursor = '';
+            // Снимаем ожидающий обработчик, если он не успел сработать
+            if (wasActive) {
+                map.off('click', onMapClickForNotePicker);
+            }
         }
     }
 }
