@@ -8,6 +8,7 @@ let routeLines = {};
 let vietnamBoundary = null;
 let neighborBoundaries = null;
 let boundariesRenderer = null;
+let poiLayer = null; // слой заведений из OpenStreetMap (Overpass API)
 
 let routeWaypoints = [];
 let builtRouteGeometry = null;
@@ -42,12 +43,16 @@ function initMap() {
         maxZoom: 19
     });
 
-    // Базовые слои — только бесплатные без API-ключа (Esri ArcGIS Online).
-    // CartoDB (водяные знаки «API KEY REQUIRED» с 2025), OSM (403 по политике
-    // использования) и Stamen (платный ключ Stadia) больше не используются.
-    const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri — Source: Esri, DeLorme, NAVTEQ',
-        maxZoom: 19
+    // Базовые слои — только бесплатные без API-ключа.
+    // Основной: векторный OpenFreeMap (стиль Liberty, данные OpenStreetMap) —
+    // плотность POI и чёткий векторный зум как у Google/Yandex: кафе,
+    // рестораны, магазины, музеи, отели на любом приближении.
+    // Esri — запасные топография/спутник. (CartoDB с 2025 отдаёт водяные
+    // знаки «API KEY REQUIRED», Stamen требует платный ключ Stadia,
+    // растровый OSM-сервер режет количество подписей.)
+    const libertyGL = L.maplibreGL({
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors · <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a>'
     }).addTo(map);
 
     const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
@@ -67,12 +72,14 @@ function initMap() {
     });
 
     const baseMaps = {
-        "Улицы (Esri)": esriStreet,
+        "Подробная (как в Google)": libertyGL,
         "Топография (Esri)": esriTopo,
         "Спутник (Esri)": esriImagery
     };
+    poiLayer = L.layerGroup().addTo(map); // заведения включены по умолчанию
     const overlayMaps = {
-        "Подписи городов": labelsOverlay
+        "Подписи городов": labelsOverlay,
+        "🏪 Заведения (кафе, магазины…)": poiLayer
     };
 
     L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
@@ -95,6 +102,7 @@ function initMap() {
     initMapSearch();
     initContextMenu();
     initRouteBuilder();
+    initPoiLayer();
     updateDashboardCounts();
 
     // Кнопка «Добавить метку» — переключает режим установки
@@ -286,6 +294,135 @@ function toggleLayer(e) {
             if (visible) map.addLayer(marker);
             else map.removeLayer(marker);
         });
+    }
+}
+
+// ============================================
+// ЗАВЕДЕНИЯ РЯДОМ (Overpass API) — плотные POI
+// как в Google/Yandex: кафе, рестораны, магазины,
+// аптеки, банкоматы, отели, музеи, бензины и т.д.
+// Данные — OpenStreetMap, сервис Overpass бесплатный, без ключа.
+// ============================================
+
+const POI_ENDPOINTS = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
+];
+const POI_MIN_ZOOM = 14;      // ниже — слишком много точек, прячем (как Google)
+const POI_LIMIT = 400;        // максимум точек на область
+let poiCache = new Map();     // ключ области -> массив POI
+let poiEndpointIdx = 0;
+let poiFetchTimer = null;
+let poiRequestSeq = 0;
+
+function initPoiLayer() {
+    map.on('moveend', schedulePoiFetch);
+    schedulePoiFetch();
+}
+
+function schedulePoiFetch() {
+    clearTimeout(poiFetchTimer);
+    poiFetchTimer = setTimeout(loadVisiblePois, 700); // ждём окончания панорамирования
+}
+
+function classifyPoi(t) {
+    const a = t.amenity, s = t.shop, to = t.tourism, l = t.leisure;
+    if (a === 'cafe') return ['☕', '#a14e2c'];
+    if (a === 'restaurant' || a === 'fast_food' || a === 'food_court') return ['🍽️', '#a14e2c'];
+    if (a === 'bar' || a === 'pub') return ['🍺', '#8455a0'];
+    if (s) return ['🛍️', '#2e7d6b'];
+    if (a === 'pharmacy' || a === 'hospital' || a === 'clinic' || a === 'doctors' || a === 'dentist') return ['⚕️', '#b03a3a'];
+    if (a === 'bank' || a === 'atm') return ['🏦', '#2f6db5'];
+    if (to === 'hotel' || to === 'hostel' || to === 'guest_house' || to === 'apartment') return ['🛏️', '#7a52a8'];
+    if (to || l === 'park' || l === 'playground' || l === 'water_park') return ['⭐', '#b8912a'];
+    if (a === 'fuel' || a === 'charging_station') return ['⛽', '#5f6b5a'];
+    if (t.office) return ['🏢', '#6b7770'];
+    return ['📍', '#5a7d6a'];
+}
+
+function poiPopupHtml(tags) {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // иконка + подпись категории
+    const [icon] = classifyPoi(tags);
+    const type = tags.amenity || tags.shop || tags.tourism || tags.leisure || tags.office || '';
+    let html = `<div style="font-weight:600;margin-bottom:2px">${icon} ${esc(tags.name || 'Без названия')}</div>`;
+    html += `<div style="color:#8a8f8c;font-size:11px;margin-bottom:6px">${esc(type)}</div>`;
+    const addr = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(', ');
+    if (addr) html += `<div style="font-size:12px">📍 ${esc(addr)}</div>`;
+    if (tags.opening_hours) html += `<div style="font-size:12px">🕒 ${esc(tags.opening_hours)}</div>`;
+    if (tags.phone || tags['contact:phone']) html += `<div style="font-size:12px">📞 ${esc(tags.phone || tags['contact:phone'])}</div>`;
+    const site = tags.website || tags['contact:website'];
+    if (site) html += `<div style="font-size:12px"><a href="${esc(site)}" target="_blank" rel="noopener">Сайт ↗</a></div>`;
+    return html;
+}
+
+function renderPois(pois) {
+    poiLayer.clearLayers();
+    const showNames = map.getZoom() >= 16; // издалека — только значки, ближе — с названиями
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    pois.forEach(p => {
+        if (!p.tags || !p.tags.name) return; // показываем только подписанные
+        const [icon, color] = classifyPoi(p.tags);
+        const chipInner = `<span style="font-size:11px">${icon}</span>` + (showNames ? `<span>${esc(p.tags.name)}</span>` : '');
+        const marker = L.marker([p.lat, p.lon], {
+            icon: L.divIcon({
+                className: 'poi-chip',
+                html: `<div style="background:${color}22;border:1px solid ${color}66;color:${color};border-radius:12px;padding:1px ${showNames ? '6px' : '3px'};font-size:11px;line-height:16px;white-space:nowrap;display:flex;align-items:center;gap:3px;box-shadow:0 1px 2px rgba(0,0,0,.12);cursor:pointer">${chipInner}</div>`,
+                iconSize: null,
+                iconAnchor: [12, 9]
+            })
+        });
+        marker.bindTooltip(esc(p.tags.name), { direction: 'top', offset: [0, -10] });
+        marker.bindPopup(poiPopupHtml(p.tags), { maxWidth: 260 });
+        poiLayer.addLayer(marker);
+    });
+}
+
+function poiCacheKeyFor(b) {
+    return [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()].map(v => v.toFixed(3)).join(',');
+}
+
+async function loadVisiblePois() {
+    if (!poiLayer || !map.hasLayer(poiLayer)) return;
+    if (map.getZoom() < POI_MIN_ZOOM) {
+        poiLayer.clearLayers();
+        return;
+    }
+    const b = map.getBounds(); // текущая область экрана
+    const key = poiCacheKeyFor(b);
+    const cached = poiCache.get(key);
+    if (cached) {
+        renderPois(cached);
+        return;
+    }
+    const seq = ++poiRequestSeq;
+    const query = `[out:json][timeout:25];(` +
+        `nwr["name"]["amenity"~"^(cafe|restaurant|fast_food|food_court|bar|pub|pharmacy|bank|atm|fuel|charging_station|hospital|clinic|doctors|dentist|place_of_worship|library|post_office|police|cinema|theatre|marketplace)$"](${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()});` +
+        `nwr["name"]["shop"](${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()});` +
+        `nwr["name"]["tourism"](${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()});` +
+        `nwr["name"]["leisure"~"^(park|playground|water_park)$"](${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()});` +
+        `nwr["name"]["office"](${b.getSouth()},${b.getWest()},${b.getNorth()},${b.getEast()});` +
+        `);out center ${POI_LIMIT};`;
+    try {
+        const res = await fetch(POI_ENDPOINTS[poiEndpointIdx], {
+            method: 'POST',
+            body: 'data=' + encodeURIComponent(query),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (seq !== poiRequestSeq) return; // уже запрошена более новая область
+        const pois = (data.elements || [])
+            .map(e => ({ lat: e.lat || (e.center && e.center.lat), lon: e.lon || (e.center && e.center.lon), tags: e.tags || {} }))
+            .filter(p => p.lat && p.lon);
+        if (poiCache.size > 40) poiCache.clear(); // не раздуваем кэш
+        poiCache.set(key, pois);
+        renderPois(pois);
+    } catch (e) {
+        // резервный сервер Overpass на следующий раз
+        poiEndpointIdx = (poiEndpointIdx + 1) % POI_ENDPOINTS.length;
+        console.warn('Overpass недоступен, переключился на резервный сервер:', e.message);
+        if (seq === poiRequestSeq) poiLayer.clearLayers();
     }
 }
 

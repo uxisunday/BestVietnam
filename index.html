@@ -8,7 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.css" />
+    <link rel="stylesheet" href="css/style.css?v=20260830-4">
 </head>
 <body>
     <!-- Экран входа -->
@@ -139,24 +141,56 @@
                         <div class="card-footer" id="visa-end-date">—</div>
                     </div>
 
-                    <!-- Vietnam time -->
+                    <!-- Clocks: Vietnam + Moscow (компактно) -->
                     <div class="card compact time-card">
                         <div class="card-header">
-                            <div class="card-label">ВРЕМЯ ВО ВЬЕТНАМЕ</div>
-                            <span class="card-icon">🌏</span>
+                            <div class="card-label">ВРЕМЯ</div>
+                            <span class="card-icon">⏰</span>
                         </div>
-                        <div class="time-clock" id="time-vietnam">--:--</div>
-                        <div class="time-date" id="date-vietnam">--</div>
+                        <div class="time-rows">
+                            <div class="time-row">
+                                <span class="time-row-label">🌏 Вьетнам</span>
+                                <div class="time-row-right">
+                                    <span class="time-clock" id="time-vietnam">--:--</span>
+                                    <span class="time-date" id="date-vietnam">--</span>
+                                </div>
+                            </div>
+                            <div class="time-row">
+                                <span class="time-row-label">🇷🇺 Москва</span>
+                                <div class="time-row-right">
+                                    <span class="time-clock" id="time-moscow">--:--</span>
+                                    <span class="time-date" id="date-moscow">--</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Moscow time -->
-                    <div class="card compact time-card">
+                    <!-- Currency rates -->
+                    <div class="card compact rates-card">
                         <div class="card-header">
-                            <div class="card-label">ВРЕМЯ В МОСКВЕ</div>
-                            <span class="card-icon">🇷🇺</span>
+                            <div class="card-label">КУРС ВАЛЮТ</div>
+                            <span class="card-icon">💱</span>
                         </div>
-                        <div class="time-clock" id="time-moscow">--:--</div>
-                        <div class="time-date" id="date-moscow">--</div>
+                        <div class="rates-rows" id="rates-rows">
+                            <div class="rate-row"><span>₽</span><small>загрузка…</small></div>
+                        </div>
+                        <div class="rates-footer" id="rates-updated"></div>
+                    </div>
+
+                    <!-- Calendar -->
+                    <div class="card compact calendar-card">
+                        <div class="card-header">
+                            <div class="card-label" id="calendar-month-title">КАЛЕНДАРЬ</div>
+                            <div class="calendar-nav">
+                                <button class="btn-icon calendar-nav-btn" id="calendar-prev" type="button" aria-label="Предыдущий месяц">‹</button>
+                                <button class="btn-icon calendar-nav-btn" id="calendar-next" type="button" aria-label="Следующий месяц">›</button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid" id="calendar-grid"></div>
+                        <div class="calendar-legend">
+                            <span class="cal-leg cal-leg-trip"></span> поездка
+                            <span class="cal-leg cal-leg-today"></span> сегодня
+                        </div>
                     </div>
                 </div>
                 <div class="dashboard-grid">
@@ -611,14 +645,16 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/data.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/sync.js"></script>
-    <script src="js/map.js"></script>
-    <script src="js/weather.js"></script>
-    <script src="js/notes.js"></script>
-    <script src="js/routes.js"></script>
-    <script src="js/expenses.js"></script>
-    <script src="js/app.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
+    <script src="js/data.js?v=20260830-4"></script>
+    <script src="js/auth.js?v=20260830-4"></script>
+    <script src="js/sync.js?v=20260830-4"></script>
+    <script src="js/map.js?v=20260830-4"></script>
+    <script src="js/weather.js?v=20260830-4"></script>
+    <script src="js/notes.js?v=20260830-4"></script>
+    <script src="js/routes.js?v=20260830-4"></script>
+    <script src="js/expenses.js?v=20260830-4"></script>
+    <script src="js/app.js?v=20260830-4"></script>
 </body>
 </html>

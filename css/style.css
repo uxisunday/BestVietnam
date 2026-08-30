@@ -356,17 +356,194 @@ input[type="number"]:focus {
     border-color: var(--accent);
 }
 
+/* Часы: две компактные строки (Вьетнам / Москва) */
+.time-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.time-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.time-row-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.time-row-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1px;
+    text-align: right;
+    min-width: 0;
+    margin-left: auto;
+}
+
 .time-card .time-clock {
-    font-size: 42px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--accent);
     line-height: 1;
-    margin-bottom: 8px;
+    font-variant-numeric: tabular-nums;
 }
 
 .time-card .time-date {
     color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* Курсы валют */
+.rates-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.rate-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.rate-row .rate-pair {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rate-row .rate-value {
     font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.rates-footer {
+    color: rgba(31, 45, 38, 0.45);
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* Календарь */
+.calendar-nav {
+    display: flex;
+    gap: 4px;
+}
+
+.calendar-nav-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    user-select: none;
+}
+
+.cal-weekday {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    padding: 2px 0;
+    text-transform: uppercase;
+}
+
+.cal-day {
+    position: relative;
+    text-align: center;
+    font-size: 12px;
+    padding: 5px 0;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.cal-day.cal-empty {
+    visibility: hidden;
+}
+
+.cal-day.cal-trip {
+    background: rgba(27, 122, 87, 0.12);
+    border-radius: 0;
+}
+
+.cal-day.cal-trip.cal-first {
+    border-radius: 8px 0 0 8px;
+}
+
+.cal-day.cal-trip.cal-last {
+    border-radius: 0 8px 8px 0;
+}
+
+.cal-day.cal-single {
+    border-radius: 8px !important;
+}
+
+.cal-day.cal-today {
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(27, 122, 87, 0.35);
+}
+
+.cal-day.cal-other {
+    opacity: 0.35;
+}
+
+.calendar-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.cal-leg {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+    border-radius: 4px;
+    margin-right: 2px;
+}
+
+.cal-leg-trip {
+    background: rgba(27, 122, 87, 0.12);
+    border: 1px solid rgba(27, 122, 87, 0.25);
+}
+
+.cal-leg-today {
+    background: var(--accent);
 }
 
 .rate-note {

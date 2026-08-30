@@ -108,6 +108,9 @@ async function initDashboard() {
     updateTripCard();
     updateVisaCard();
     startClocks();
+    renderDashboardCalendar();
+    setupCalendarNav();
+    loadCurrencyRates();
 }
 
 function setupTripInputs() {
@@ -127,6 +130,7 @@ function setupTripInputs() {
             cachedSettings.tripEnd = end;
             await saveSettings(cachedSettings);
             updateTripCard();
+            renderDashboardCalendar();
         }
     };
 
@@ -256,9 +260,134 @@ function updateTimeWidget(timeId, dateId, timeZone, now) {
     dateEl.textContent = new Intl.DateTimeFormat('ru-RU', {
         timeZone,
         weekday: 'short',
-        day: 'numeric',
-        month: 'long'
+        day: '2-digit',
+        month: '2-digit'
     }).format(now);
+}
+
+// ============================================
+// КАЛЕНДАРЬ ДАШБОРДА
+// ============================================
+
+let calendarOffset = 0; // 0 — текущий месяц
+const CAL_WEEKDAYS = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'];
+const CAL_MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+function renderDashboardCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const title = document.getElementById('calendar-month-title');
+    if (!grid) return;
+
+    const today = new Date();
+    const base = new Date(today.getFullYear(), today.getMonth() + calendarOffset, 1);
+    if (title) title.textContent = `${CAL_MONTHS[base.getMonth()]} ${base.getFullYear()}`;
+
+    const firstDow = (base.getDay() + 6) % 7; // понедельник = 0
+    const daysInMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+
+    // период поездки — из полей «Старт/Финиш» на дашборде
+    const startStr = document.getElementById('trip-start')?.value;
+    const endStr = document.getElementById('trip-end')?.value;
+    const tripStart = startStr ? new Date(startStr + 'T00:00:00') : null;
+    const tripEnd = endStr ? new Date(endStr + 'T00:00:00') : null;
+
+    let html = CAL_WEEKDAYS.map(w => `<span class="cal-weekday">${w}</span>`).join('');
+    const totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+
+    for (let i = 0; i < totalCells; i++) {
+        const dayNum = i - firstDow + 1;
+        const cellDate = new Date(base.getFullYear(), base.getMonth(), dayNum);
+        let cls = 'cal-day';
+        if (dayNum < 1 || dayNum > daysInMonth) cls += ' cal-other';
+
+        if (tripStart && tripEnd && cellDate >= tripStart && cellDate <= tripEnd) {
+            cls += ' cal-trip';
+            const t = cellDate.getTime();
+            if (t === tripStart.getTime()) cls += ' cal-first';
+            if (t === tripEnd.getTime()) cls += ' cal-last';
+        }
+        if (calendarOffset === 0 && cellDate.toDateString() === today.toDateString()) {
+            cls += ' cal-today';
+        }
+        html += `<span class="${cls}">${cellDate.getDate()}</span>`;
+    }
+    grid.innerHTML = html;
+}
+
+function setupCalendarNav() {
+    const prev = document.getElementById('calendar-prev');
+    const next = document.getElementById('calendar-next');
+    if (prev) prev.addEventListener('click', () => { calendarOffset--; renderDashboardCalendar(); });
+    if (next) next.addEventListener('click', () => { calendarOffset++; renderDashboardCalendar(); });
+}
+
+// ============================================
+// КУРСЫ ВАЛЮТ (USD, RUB, VND) — обновление раз в сутки
+// ============================================
+
+const RATES_API_URL = 'https://open.er-api.com/v6/latest/USD'; // бесплатно, без ключа
+const RATES_CACHE_KEY = 'bestvn_rates_cache';
+
+async function loadCurrencyRates() {
+    const rowsEl = document.getElementById('rates-rows');
+    const updEl = document.getElementById('rates-updated');
+    if (!rowsEl) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    let cache = null;
+    try { cache = JSON.parse(localStorage.getItem(RATES_CACHE_KEY)); } catch (e) { /* битый кэш — игнорируем */ }
+
+    // кэш живёт сутки: если сегодня уже получали — просто рисуем
+    if (cache && cache.date === today && cache.usdRub && cache.usdVnd) {
+        renderRatesCard(cache);
+        return;
+    }
+    try {
+        const res = await fetch(RATES_API_URL);
+        const data = await res.json();
+        if (data && data.rates && data.rates.RUB && data.rates.VND) {
+            const rec = { date: today, usdRub: data.rates.RUB, usdVnd: data.rates.VND };
+            try { localStorage.setItem(RATES_CACHE_KEY, JSON.stringify(rec)); } catch (e) { /* приватный режим */ }
+            renderRatesCard(rec);
+        } else if (cache) {
+            renderRatesCard(cache);
+        }
+    } catch (e) {
+        console.warn('Не удалось загрузить курсы валют:', e.message);
+        if (cache) renderRatesCard(cache); // показываем хотя бы вчерашний курс
+        else rowsEl.innerHTML = '<div class="rate-row"><small>Курсы временно недоступны</small></div>';
+    }
+}
+
+function renderRatesCard(rec) {
+    const rowsEl = document.getElementById('rates-rows');
+    const updEl = document.getElementById('rates-updated');
+    if (!rowsEl || !rec.usdRub || !rec.usdVnd) return;
+
+    const rubPerVnd10k = (10000 * rec.usdRub / rec.usdVnd).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+    const vndPerRub = (rec.usdVnd / rec.usdRub).toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+
+    rowsEl.innerHTML = `
+        <div class="rate-row">
+            <span class="rate-pair">💵 1 $</span>
+            <span class="rate-value">${rec.usdRub.toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₽</span>
+        </div>
+        <div class="rate-row">
+            <span class="rate-pair">💵 1 $</span>
+            <span class="rate-value">${Math.round(rec.usdVnd).toLocaleString('ru-RU')} ₫</span>
+        </div>
+        <div class="rate-row">
+            <span class="rate-pair">🏦 10 000 ₫</span>
+            <span class="rate-value">≈ ${rubPerVnd10k} ₽</span>
+        </div>
+        <div class="rate-row">
+            <span class="rate-pair">🇻🇳 1 ₽</span>
+            <span class="rate-value">${vndPerRub} ₫</span>
+        </div>`;
+
+    const d = new Date(rec.date + 'T00:00:00');
+    if (updEl) updEl.textContent = `Обновлено ${d.toLocaleDateString('ru-RU')} · курс обновляется раз в сутки`;
 }
 
 function declineDays(n) {
