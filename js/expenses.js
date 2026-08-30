@@ -12,15 +12,15 @@ const DEFAULT_VND_PER_RUB = 280;
 let currentVndPerRub = DEFAULT_VND_PER_RUB;
 
 const EXPENSE_CATEGORIES = {
-    food: { label: '🍽️ Еда', color: '#facc15' },
-    accommodation: { label: '🏠 Жильё', color: '#6b8aff' },
-    transport: { label: '🚌 Транспорт', color: '#22d3ee' },
-    flights: { label: '✈️ Перелёты', color: '#a78bfa' },
-    entertainment: { label: '🎭 Развлечения', color: '#f472b6' },
-    shopping: { label: '🛍️ Шопинг', color: '#fb923c' },
-    health: { label: '🏥 Медицина', color: '#4ade80' },
-    visa: { label: '🛂 Визы', color: '#94a3b8' },
-    other: { label: '📦 Другое', color: '#a99bb8' }
+    food: { label: '🍽️ Еда', color: '#d9a441' },
+    accommodation: { label: '🏠 Жильё', color: '#5b93b8' },
+    transport: { label: '🚌 Транспорт', color: '#4fb3a9' },
+    flights: { label: '✈️ Перелёты', color: '#2f9e6e' },
+    entertainment: { label: '🎭 Развлечения', color: '#c98a7d' },
+    shopping: { label: '🛍️ Шопинг', color: '#b08968' },
+    health: { label: '🏥 Медицина', color: '#6a9b7e' },
+    visa: { label: '🛂 Визы', color: '#8f9aa8' },
+    other: { label: '📦 Другое', color: '#a39c8a' }
 };
 
 const DEFAULT_BUDGET_RUB = 600000;
@@ -357,8 +357,8 @@ async function updateExpensesUI() {
                         <div class="bar-label">${catInfo.label}</div>
                         <div class="bar-track">
                             <div class="bar-fill" style="width: ${percent}%; background: ${catInfo.color};"></div>
-                            <div class="bar-value">${formatVnd(amount)} (${percent.toFixed(0)}%)</div>
                         </div>
+                        <div class="bar-value">${formatVnd(amount)} · ${percent.toFixed(0)}%</div>
                     </div>
                 `;
             }).join('');

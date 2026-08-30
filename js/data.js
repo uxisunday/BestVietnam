@@ -1227,6 +1227,10 @@ const VIETNAM_DATA = {
     ]
 };
 
+// top-level const не попадает в window — дублируем явно,
+// т.к. notes.js и map.js читают window.VIETNAM_DATA
+if (typeof window !== 'undefined') window.VIETNAM_DATA = VIETNAM_DATA;
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { VIETNAM_DATA };
 }

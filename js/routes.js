@@ -185,7 +185,7 @@ function openCruiseForm() {
     detail.innerHTML = `
         <div class="route-detail-card">
             <div class="route-detail-header">
-                <h3 style="margin: 0;">➕ Добавить буклет / идею для поездки</h3>
+                <h3 style="margin: 0;">+ Добавить буклет / идею для поездки</h3>
                 <button class="btn btn-secondary" onclick="closeRouteDetail()">Закрыть</button>
             </div>
 

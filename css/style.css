@@ -1,19 +1,23 @@
 :root {
-    --bg-primary: #0f0c15;
-    --bg-secondary: #1a1625;
-    --bg-card: #231d32;
-    --bg-hover: #2d2640;
-    --text-primary: #f0e6ff;
-    --text-secondary: #a99bb8;
-    --accent: #ff6b8a;
-    --accent-hover: #ff4d73;
-    --accent-blue: #6b8aff;
-    --border: #332a45;
-    --success: #4ade80;
-    --warning: #facc15;
-    --danger: #ef4444;
+    --bg-primary: #f5f1e8;
+    --bg-secondary: #eee9dd;
+    --bg-card: #fcfaf4;
+    --bg-hover: #ede8da;
+    --text-primary: #1f2d26;
+    --text-secondary: #79816f;
+    --accent: #1b7a57;
+    --accent-hover: #14603f;
+    --accent-blue: #3aa981;
+    --border: rgba(31, 45, 38, 0.08);
+    --border-strong: rgba(31, 45, 38, 0.14);
+    --success: #2f9e44;
+    --warning: #e6b83c;
+    --danger: #dc4444;
     --radius: 12px;
-    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --glass-bg: rgba(252, 250, 244, 0.68);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --shadow: 0 1px 2px rgba(31, 45, 38, 0.03), 0 2.4px 7px rgba(31, 45, 38, 0.03), 0 9px 28px rgba(31, 45, 38, 0.05);
+    --shadow-soft: 0 1px 2px rgba(31, 45, 38, 0.03), 0 4px 18px rgba(31, 45, 38, 0.04);
 }
 
 * {
@@ -23,8 +27,15 @@
 }
 
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-primary);
+    font-family: 'Manrope', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: 0.01em;
+    line-height: 1.6;
+    background:
+        radial-gradient(900px 600px at 85% -10%, rgba(58, 169, 129, 0.10), transparent 60%),
+        radial-gradient(700px 500px at -10% 100%, rgba(230, 184, 60, 0.07), transparent 55%),
+        radial-gradient(1200px 800px at 40% 50%, rgba(255, 255, 255, 0.5), transparent 70%),
+        var(--bg-primary);
+    background-attachment: fixed;
     color: var(--text-primary);
     height: 100vh;
     overflow: hidden;
@@ -36,11 +47,45 @@ body {
     width: 100vw;
 }
 
+/* Chrome заливает автозаполненные поля синим — перекрашиваем в фон темы */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px var(--bg-primary) inset;
+    -webkit-text-fill-color: var(--text-primary);
+    caret-color: var(--text-primary);
+    transition: background-color 99999s ease-in-out 0s;
+}
+
+/* Подсказки в полях — заметно легче основного текста */
+::placeholder {
+    color: rgba(31, 45, 38, 0.38);
+    opacity: 1;
+}
+
+input::placeholder,
+textarea::placeholder {
+    font-weight: 400;
+}
+
+/* Заголовки разделов — серифный шрифт для иерархии */
+h1, h2, h3 {
+    font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+h3 {
+    font-size: 19px;
+}
+
 /* Sidebar */
 .sidebar {
     width: 260px;
-    background: var(--bg-secondary);
-    border-right: 1px solid var(--border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(22px) saturate(1.15);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15);
+    border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     padding: 24px 16px;
@@ -132,13 +177,29 @@ body {
     display: block;
 }
 
+/* На широких экранах не растягиваем контент на всю ширину —
+   ограничиваем и центрируем (как страницы Ozon/Notion).
+   Карта — исключение, она полноэкранная. */
+#tab-weather > *,
+#tab-routes > *,
+#tab-planner > *,
+#tab-notes > *,
+#tab-expenses > *,
+#tab-settings > * {
+    max-width: 1360px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .page-header {
     margin-bottom: 28px;
 }
 
 .page-header h1 {
-    font-size: 32px;
-    font-weight: 700;
+    font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    font-size: 34px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
     margin-bottom: 8px;
 }
 
@@ -170,16 +231,19 @@ body {
 }
 
 .card {
-    background: var(--bg-card);
+    background: rgba(252, 250, 244, 0.82);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 22px;
-    box-shadow: var(--shadow);
-    transition: border-color 0.2s ease, transform 0.15s ease;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
-    border-color: #4a3f63;
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow);
 }
 
 .card.wide {
@@ -207,8 +271,8 @@ body {
 .card-label {
     color: var(--text-secondary);
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
+    font-weight: 700;
+    letter-spacing: 1.6px;
 }
 
 .card-title {
@@ -448,44 +512,51 @@ input[type="number"]:focus {
 }
 
 .btn {
-    padding: 12px 24px;
-    border-radius: var(--radius);
+    padding: 9px 16px;
+    border-radius: 10px;
     border: none;
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 600;
+    letter-spacing: 0.005em;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .btn-primary {
     background: var(--accent);
-    color: white;
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(20, 96, 63, 0.25), 0 4px 14px rgba(27, 122, 87, 0.22);
 }
 
 .btn-primary:hover {
     background: var(--accent-hover);
+    box-shadow: 0 1px 2px rgba(20, 96, 63, 0.3), 0 6px 18px rgba(27, 122, 87, 0.28);
+    transform: translateY(-1px);
 }
 
 .btn-secondary {
-    background: var(--bg-hover);
+    background: rgba(31, 45, 38, 0.06);
     color: var(--text-primary);
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
     margin-right: 8px;
     margin-bottom: 8px;
 }
 
 .btn-secondary:hover {
-    background: var(--border);
+    background: rgba(31, 45, 38, 0.1);
+    color: var(--accent);
+    transform: translateY(-1px);
 }
 
 .btn-danger {
-    background: rgba(239, 68, 68, 0.2);
-    color: var(--danger);
-    border: 1px solid var(--danger);
+    background: rgba(31, 45, 38, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid transparent;
 }
 
 .btn-danger:hover {
-    background: rgba(239, 68, 68, 0.3);
+    background: rgba(220, 68, 68, 0.1);
+    color: var(--danger);
 }
 
 /* Map */
@@ -505,7 +576,10 @@ input[type="number"]:focus {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
-    background: var(--bg-card);
+    background: var(--glass-bg);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 1px solid var(--glass-border);
     padding: 10px 14px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
@@ -728,10 +802,10 @@ input[type="number"]:focus {
 }
 
 .popup-type.city { background: var(--accent-blue); color: white; }
-.popup-type.attraction { background: var(--warning); color: #1a1625; }
-.popup-type.beach { background: #22d3ee; color: #1a1625; }
-.popup-type.airport { background: var(--success); color: #1a1625; }
-.popup-type.port { background: #a78bfa; color: white; }
+.popup-type.attraction { background: var(--warning); color: #4a3a10; }
+.popup-type.beach { background: #4fb3a9; color: white; }
+.popup-type.airport { background: var(--success); color: white; }
+.popup-type.port { background: #7d9bb0; color: white; }
 
 .popup-images {
     display: grid;
@@ -991,7 +1065,7 @@ input[type="number"]:focus {
 .route-row:hover,
 .route-row.active {
     border-color: var(--accent);
-    background: rgba(255, 107, 138, 0.08);
+    background: rgba(27, 122, 87, 0.06);
 }
 
 .route-row-date {
@@ -1389,6 +1463,69 @@ input[type="number"]:focus {
     margin-bottom: 16px;
 }
 
+/* Текст заметки — главный элемент формы */
+#note-body {
+    min-height: 340px;
+    font-size: 15px;
+    padding: 18px 20px;
+    background: var(--bg-card);
+    border-color: var(--border-strong);
+}
+
+/* Теги + адрес — короткие, в одну линию */
+.notes-form-grid.notes-form-grid-2 {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 16px;
+}
+
+/* Сворачиваемый блок «Метка на карте» */
+.note-extra {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    background: transparent;
+}
+
+.note-extra summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+}
+
+.note-extra summary::before {
+    content: '▸';
+    display: inline-block;
+    transition: transform 0.15s ease;
+    color: var(--text-secondary);
+}
+
+.note-extra[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.note-extra summary .hint {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 11px;
+}
+
+.note-extra .pin-type-picker {
+    margin-top: 12px;
+}
+
+.note-extra summary::-webkit-details-marker {
+    display: none;
+}
+
 .notes-editor-form textarea:focus {
     outline: none;
     border-color: var(--accent);
@@ -1466,11 +1603,18 @@ input[type="number"]:focus {
 }
 
 .notes-tree-toggle {
-    font-size: 11px;
+    font-size: 13px;
     color: var(--text-secondary);
-    width: 12px;
+    width: 16px;
+    flex: 0 0 16px;
     display: inline-block;
     text-align: center;
+    cursor: pointer;
+    transition: color 0.15s, transform 0.15s;
+}
+
+.notes-tree-toggle:hover {
+    color: var(--accent);
 }
 
 .notes-tree-icon {
@@ -1697,6 +1841,50 @@ input[type="number"]:focus {
     flex-wrap: wrap;
 }
 
+/* Сворачиваемый список городов — по умолчанию скрыт */
+.notes-cities-details {
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+
+.notes-cities-details summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 10px;
+    border-radius: 8px;
+    list-style: none;
+}
+
+.notes-cities-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.notes-cities-details summary::before {
+    content: '▸';
+    font-size: 11px;
+    color: rgba(31, 45, 38, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.notes-cities-details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.notes-cities-details summary:hover {
+    background: var(--bg-hover);
+}
+
+.notes-cities-details[open] summary {
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
 .notes-filter-row .filter-label {
     color: var(--text-secondary);
     font-size: 12px;
@@ -1752,10 +1940,165 @@ input[type="number"]:focus {
 }
 
 .filter-hint {
-    color: var(--text-secondary);
+    color: rgba(31, 45, 38, 0.4);
     font-size: 12px;
     font-style: italic;
     padding: 4px 0;
+}
+
+/* Все заметки: сводка + индекс по хэштегам */
+.notes-all-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+
+.notes-all-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.notes-all-clear.hidden {
+    display: none;
+}
+
+/* Кнопка «Все заметки» — заметная */
+.notes-all-chip {
+    padding: 8px 18px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 20px;
+}
+
+.notes-all-chip:hover {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: white;
+}
+
+/* «Все заметки» в дереве категорий */
+.notes-tree-all {
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+}
+
+.notes-tree-all > .notes-tree-header {
+    font-weight: 700;
+}
+
+.notes-tree-all.active {
+    border-color: var(--accent);
+}
+
+.notes-tree-all.active > .notes-tree-header {
+    background: var(--accent);
+    color: white;
+}
+
+.notes-tree-all.active > .notes-tree-header .notes-tree-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+/* --- Фото и скриншоты в заметках --- */
+
+.note-images-drop {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    user-select: none;
+}
+
+.note-images-drop:hover,
+.note-images-drop.drag {
+    border-color: var(--accent);
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.note-images-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.note-image-thumb {
+    position: relative;
+    width: 96px;
+    height: 72px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    flex: 0 0 auto;
+}
+
+.note-image-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: zoom-in;
+    display: block;
+}
+
+.note-image-remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 18px;
+    height: 18px;
+    line-height: 17px;
+    text-align: center;
+    font-size: 11px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    cursor: pointer;
+}
+
+.note-image-remove:hover {
+    background: var(--accent);
+}
+
+/* Превью фото на карточке заметки */
+.note-card-imgwrap {
+    position: relative;
+    margin: -12px -14px 10px;
+}
+
+.note-card-img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.note-card-imgcount {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
 }
 
 .notes-filter-actions {
@@ -1798,9 +2141,10 @@ input[type="number"]:focus {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--text-primary);
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 600;
-    font-family: inherit;
+    font-family: 'Lora', Georgia, serif;
+    letter-spacing: -0.01em;
 }
 
 .note-title-input:focus {
@@ -1832,7 +2176,8 @@ input[type="number"]:focus {
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
-    color: var(--text-secondary);
+    color: rgba(31, 45, 38, 0.45);
+    font-size: 11px;
     font-style: italic;
     margin-left: 4px;
 }
@@ -1840,7 +2185,7 @@ input[type="number"]:focus {
 .notes-form-row input[type="text"],
 .notes-form-row select,
 .notes-form-row textarea {
-    padding: 10px 14px;
+    padding: 9px 14px;
     background: var(--bg-primary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -1848,6 +2193,8 @@ input[type="number"]:focus {
     font-size: 14px;
     font-family: inherit;
     width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
 }
 
 .notes-form-row select {
@@ -1871,11 +2218,11 @@ input[type="number"]:focus {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 8px 10px;
+    padding: 5px 12px;
     background: var(--bg-primary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    min-height: 40px;
+    min-height: 42px;
     align-items: center;
 }
 
@@ -1910,7 +2257,10 @@ input[type="number"]:focus {
 
 .note-address-row input {
     flex: 1;
-    padding: 10px 14px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 8px 14px;
     background: var(--bg-primary);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -1919,13 +2269,28 @@ input[type="number"]:focus {
     font-family: inherit;
 }
 
+/* Единая высота всех полей формы редактора */
+.notes-editor-form input[type="text"],
+.notes-editor-form select,
+.notes-editor-form textarea {
+    box-sizing: border-box;
+}
+
+/* Внутренний инпут тегов — без собственной рамки (иначе двойное окно) */
+.notes-editor-form input#note-tag-input {
+    border: none;
+    background: transparent;
+    padding: 4px 0;
+    min-height: 28px;
+}
+
 .note-address-row input:focus {
     outline: none;
     border-color: var(--accent);
 }
 
 .note-coords-display {
-    color: var(--text-secondary);
+    color: rgba(31, 45, 38, 0.4);
     font-size: 12px;
     padding: 4px 0;
 }
@@ -1948,6 +2313,21 @@ input[type="number"]:focus {
     border-top: 1px solid var(--border);
     padding-top: 14px;
     margin-top: 4px;
+}
+
+.notes-editor-actions .btn {
+    height: 40px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+
+.btn-sm {
+    height: 42px;
+    padding: 0 14px;
+    font-size: 13px;
 }
 
 .note-flash {
@@ -2083,39 +2463,37 @@ input[type="number"]:focus {
 .expense-category-bar {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .expense-category-bar .bar-label {
-    width: 140px;
-    font-size: 13px;
+    width: 128px;
+    font-size: 12px;
     color: var(--text-secondary);
     flex-shrink: 0;
 }
 
 .expense-category-bar .bar-track {
     flex: 1;
-    height: 24px;
+    height: 8px;
     background: var(--bg-secondary);
-    border-radius: 12px;
+    border-radius: 4px;
     overflow: hidden;
     position: relative;
 }
 
 .expense-category-bar .bar-fill {
     height: 100%;
-    border-radius: 12px;
+    border-radius: 4px;
     transition: width 0.5s ease;
 }
 
 .expense-category-bar .bar-value {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
     font-size: 12px;
     font-weight: 600;
-    color: var(--text-primary);
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .expenses-list {
@@ -2128,10 +2506,10 @@ input[type="number"]:focus {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--bg-secondary);
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 10px 14px;
 }
 
 .expense-item-info {
@@ -2149,14 +2527,14 @@ input[type="number"]:focus {
 }
 
 .expense-item-amount {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
     color: var(--accent);
-    margin-right: 16px;
+    margin-right: 12px;
 }
 
 .expense-item-actions button {
-    padding: 6px 12px;
+    padding: 5px 9px;
     font-size: 12px;
 }
 
@@ -2184,7 +2562,7 @@ input[type="number"]:focus {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
+    padding: 48px 24px;
     color: var(--text-secondary);
     text-align: center;
 }
@@ -2588,11 +2966,11 @@ input[type="number"]:focus {
 }
 
 /* Цветные бейджи для pin-toggle */
-.pin-toggle.pin-toggle-want-to-visit { border-left: 3px solid #e74c3c; padding-left: 6px; }
-.pin-toggle.pin-toggle-visited       { border-left: 3px solid #27ae60; padding-left: 6px; }
-.pin-toggle.pin-toggle-food          { border-left: 3px solid #f1c40f; padding-left: 6px; }
-.pin-toggle.pin-toggle-housing       { border-left: 3px solid #3498db; padding-left: 6px; }
-.pin-toggle.pin-toggle-note          { border-left: 3px solid #9b59b6; padding-left: 6px; }
+.pin-toggle.pin-toggle-want-to-visit { border-left: 3px solid var(--danger); padding-left: 6px; }
+.pin-toggle.pin-toggle-visited       { border-left: 3px solid var(--success); padding-left: 6px; }
+.pin-toggle.pin-toggle-food          { border-left: 3px solid var(--warning); padding-left: 6px; }
+.pin-toggle.pin-toggle-housing       { border-left: 3px solid #5b93b8; padding-left: 6px; }
+.pin-toggle.pin-toggle-note          { border-left: 3px solid #8f7fae; padding-left: 6px; }
 
 /* Цветные маркеры на карте */
 .pin-marker {
@@ -2826,24 +3204,24 @@ input[type="number"]:focus {
 
 /* Цветные состояния для каждого типа */
 .pin-type-btn.pin-type-want-to-visit.active {
-    border-color: #e74c3c;
-    background: rgba(231, 76, 60, 0.15);
+    border-color: var(--danger);
+    background: rgba(220, 68, 68, 0.12);
 }
 .pin-type-btn.pin-type-visited.active {
-    border-color: #27ae60;
-    background: rgba(39, 174, 96, 0.15);
+    border-color: var(--success);
+    background: rgba(47, 158, 68, 0.12);
 }
 .pin-type-btn.pin-type-food.active {
-    border-color: #f1c40f;
-    background: rgba(241, 196, 15, 0.18);
+    border-color: var(--warning);
+    background: rgba(230, 184, 60, 0.16);
 }
 .pin-type-btn.pin-type-housing.active {
-    border-color: #3498db;
-    background: rgba(52, 152, 219, 0.15);
+    border-color: #5b93b8;
+    background: rgba(91, 147, 184, 0.14);
 }
 .pin-type-btn.pin-type-note.active {
-    border-color: #9b59b6;
-    background: rgba(155, 89, 182, 0.15);
+    border-color: #8f7fae;
+    background: rgba(143, 127, 174, 0.14);
 }
 
 /* Поля формы */
@@ -2886,7 +3264,7 @@ input[type="number"]:focus {
 }
 
 .pin-form-field input.input-error {
-    border-color: #e74c3c;
+    border-color: var(--danger);
     animation: pinInputShake 0.4s ease;
 }
 
@@ -3041,7 +3419,7 @@ input[type="number"]:focus {
 }
 
 .planner-item:hover {
-    border-color: #4a3f63;
+    border-color: var(--accent);
 }
 
 .planner-item.past {
@@ -3051,7 +3429,7 @@ input[type="number"]:focus {
 
 .planner-item.today {
     border-left: 4px solid var(--accent);
-    background: rgba(255, 107, 138, 0.08);
+    background: rgba(27, 122, 87, 0.07);
 }
 
 .planner-item.soon {
@@ -3148,7 +3526,7 @@ input[type="number"]:focus {
 
 .planner-reminder.urgent {
     border-left-color: var(--accent);
-    background: rgba(255, 107, 138, 0.08);
+    background: rgba(27, 122, 87, 0.06);
 }
 
 .planner-reminder.calm {
@@ -3174,15 +3552,15 @@ input[type="number"]:focus {
     display: flex;
     align-items: center;
     gap: 14px;
-    background: rgba(255, 107, 138, 0.08);
-    border: 1px solid var(--accent);
+    background: rgba(27, 122, 87, 0.06);
+    border: 1px solid rgba(27, 122, 87, 0.2);
     border-radius: var(--radius);
-    padding: 14px 18px;
+    padding: 12px 16px;
     margin-bottom: 20px;
 }
 
 .planner-banner-icon {
-    font-size: 28px;
+    font-size: 22px;
 }
 
 .planner-banner-body {
@@ -3219,9 +3597,9 @@ input[type="number"]:focus {
 
 .marker-city { background: var(--accent-blue); }
 .marker-attraction { background: var(--warning); }
-.marker-beach { background: #22d3ee; }
+.marker-beach { background: #4fb3a9; }
 .marker-airport { background: var(--success); }
-.marker-port { background: #a78bfa; }
+.marker-port { background: #7d9bb0; }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
@@ -3286,7 +3664,10 @@ input[type="number"]:focus {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--bg-primary);
+    background:
+        radial-gradient(900px 700px at 20% 15%, rgba(58, 169, 129, 0.16), transparent 60%),
+        radial-gradient(800px 600px at 85% 85%, rgba(230, 184, 60, 0.12), transparent 55%),
+        var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3299,9 +3680,11 @@ input[type="number"]:focus {
 }
 
 .login-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
     padding: 40px;
     width: 100%;
     max-width: 420px;
@@ -3314,6 +3697,8 @@ input[type="number"]:focus {
 }
 
 .login-header h1 {
+    font-family: 'Lora', Georgia, 'Times New Roman', serif;
+    font-weight: 600;
     margin-top: 8px;
     margin-bottom: 8px;
 }

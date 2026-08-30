@@ -546,7 +546,7 @@ function addRouteWaypoint(coords) {
 
     renderWaypointsList();
     renderTempWaypoints();
-    showRouteNotification(`➕ Точка добавлена (${routeWaypoints.length})`);
+    showRouteNotification(`+ Точка добавлена (${routeWaypoints.length})`);
 }
 
 function removeWaypoint(index) {

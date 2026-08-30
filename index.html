@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vietnam Travel Map 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Lora:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -271,7 +274,7 @@
                 <button class="builder-toggle" id="builder-toggle" onclick="toggleRouteBuilder()">🛣️ Маршрут</button>
 
                 <div id="map-context-menu" class="map-context-menu hidden">
-                    <div class="context-item" data-action="waypoint">➕ Добавить точку маршрута</div>
+                    <div class="context-item" data-action="waypoint">+ Добавить точку маршрута</div>
                     <div class="context-item" data-action="google">🔍 Искать в Google Maps</div>
                 </div>
 
@@ -392,7 +395,7 @@
                     <div class="cruises-content" id="cruises-content">
                         <div class="cruises-intro">
                             <p>Вдохновение для маршрутов: официальные круизы по бухтам и рекам, а также места, куда можно добавить свои буклеты и ссылки.</p>
-                            <button class="btn btn-secondary" onclick="openCruiseForm()">➕ Добавить буклет/ссылку</button>
+                            <button class="btn btn-secondary" onclick="openCruiseForm()">+ Добавить буклет/ссылку</button>
                         </div>
 
                         <div class="carousel-wrapper">
@@ -434,25 +437,38 @@
                     <h1>📝 Заметки</h1>
                     <p class="subtitle">Личные заметки: места, врачи, кафе, жильё — всё в одном месте</p>
                 </header>
+
+                <!-- Все заметки: сводка + индекс по хэштегам -->
+                <div class="notes-all-bar">
+                    <div class="notes-all-left">
+                        <button class="filter-chip notes-all-chip" id="notes-all-chip" onclick="showAllNotes()">📋 Все заметки <span class="filter-chip-count" id="notes-all-count">0</span></button>
+                        <span class="filter-hint" id="notes-all-hint">кликните #хэштег — покажем все заметки с ним</span>
+                        <button class="filter-chip notes-all-clear hidden" id="notes-all-clear" onclick="clearAllNoteFilters()">✕ Сбросить фильтры</button>
+                    </div>
+                    <div id="notes-all-tags" class="filter-chips"></div>
+                </div>
+
                 <div class="notes-layout">
                     <div class="notes-sidebar">
                         <div class="search-box">
-                            <input type="text" id="notes-search" placeholder="Найти заметку по названию или тегу…">
+                            <input type="text" id="notes-search" placeholder="Найти заметку по названию или тегу…" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
                         </div>
                         <div id="notes-tree" class="notes-tree"></div>
                     </div>
                     <div class="notes-content">
-                        <div class="notes-filter-bar">
-                            <div class="notes-filter-row">
-                                <span class="filter-label">📍 Город:</span>
-                                <div id="notes-filter-cities" class="filter-chips"></div>
-                            </div>
+                        <div class="notes-filter-bar" id="notes-filter-bar">
                             <div class="notes-filter-row">
                                 <span class="filter-label">🏷️ Теги:</span>
                                 <div id="notes-filter-tags" class="filter-chips"></div>
                             </div>
+                            <details class="notes-cities-details">
+                                <summary>📍 Города</summary>
+                                <div class="notes-filter-row">
+                                    <div id="notes-filter-cities" class="filter-chips"></div>
+                                </div>
+                            </details>
                             <div class="notes-filter-actions">
-                                <button class="btn btn-primary" onclick="startNewNote()">➕ Добавить заметку</button>
+                                <button class="btn btn-primary" onclick="startNewNote()">+ Добавить заметку</button>
                             </div>
                         </div>
                         <div id="notes-subbar" class="notes-subbar-host"></div>
@@ -513,7 +529,7 @@
                                 <label for="expense-notes">Примечание (необязательно)</label>
                                 <input type="text" id="expense-notes" placeholder="Где, с кем, детали...">
 
-                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">➕ Добавить трату</button>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">+ Добавить трату</button>
                             </form>
                         </div>
                     </div>

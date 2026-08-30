@@ -58,6 +58,7 @@ let activeSubcategory = null;     // id выбранной подкатегор�
 let activeCityFilter = null;      // id города (или null)
 let activeTagFilter = null;       // строка-тег (или null)
 let expandedCategories = new Set(['medicine', 'housing']);  // раскрытые по умолчанию
+let draftImages = [];             // фото/скриншоты редактируемой заметки (dataURL)
 
 // -------------------- init --------------------
 
@@ -86,6 +87,14 @@ async function initNotes() {
         searchInput.addEventListener('input', (e) => {
             renderNotesList(e.target.value);
         });
+        // Chrome подставляет сохранённые данные профиля даже при autocomplete="off" —
+        // принудительно чистим строку поиска после отложенного автозаполнения
+        [100, 600, 2000].forEach(delay => setTimeout(() => {
+            if (searchInput.value && document.activeElement !== searchInput) {
+                searchInput.value = '';
+                renderNotesList('');
+            }
+        }, delay));
     }
 }
 
@@ -126,7 +135,20 @@ function renderNotesTree() {
     const container = document.getElementById('notes-tree');
     if (!container) return;
 
-    const html = getAllCategories().map(cat => {
+    // «Все заметки» — отдельная запись в самом верху дерева
+    const noFilters = !activeCategory && !activeSubcategory && !activeCityFilter && !activeTagFilter;
+    const allEntryHtml = `
+        <div class="notes-tree-category notes-tree-all ${noFilters ? 'active' : ''}">
+            <div class="notes-tree-header" onclick="showAllNotes()">
+                <span class="notes-tree-toggle"></span>
+                <span class="notes-tree-icon">📋</span>
+                <span class="notes-tree-name">Все заметки</span>
+                <span class="notes-tree-count">${notesCache.length}</span>
+            </div>
+        </div>
+    `;
+
+    const html = allEntryHtml + getAllCategories().map(cat => {
         const isExpanded = expandedCategories.has(cat.id);
         const subs = getAllSubcategories(cat.id);
         const catCount = countNotesInCategory(cat.id);
@@ -155,8 +177,9 @@ function renderNotesTree() {
 
         return `
             <div class="notes-tree-category ${isActive ? 'active' : ''}" data-category="${escapeAttr(cat.id)}">
-                <div class="notes-tree-header" onclick="toggleNoteCategory('${escapeAttr(cat.id)}')">
-                    <span class="notes-tree-toggle">${isExpanded ? '▾' : '▸'}</span>
+                <div class="notes-tree-header" onclick="selectNoteCategory('${escapeAttr(cat.id)}')">
+                    <span class="notes-tree-toggle" title="${isExpanded ? 'Свернуть' : 'Развернуть'}"
+                          onclick="event.stopPropagation(); toggleNoteCategoryExpanded('${escapeAttr(cat.id)}')">${isExpanded ? '▾' : '▸'}</span>
                     <span class="notes-tree-icon">${cat.icon || '📁'}</span>
                     <span class="notes-tree-name">${escapeHtml(cat.name)}</span>
                     <span class="notes-tree-count">${catCount}</span>
@@ -175,20 +198,45 @@ function renderNotesTree() {
     container.innerHTML = html + addCategoryHtml;
 }
 
-function toggleNoteCategory(categoryId) {
+// Свернуть/развернуть категорию, не меняя выбранную (клик по стрелке)
+function toggleNoteCategoryExpanded(categoryId) {
     if (expandedCategories.has(categoryId)) {
         expandedCategories.delete(categoryId);
     } else {
         expandedCategories.add(categoryId);
     }
-    selectNoteCategory(categoryId);
+    persistNotesTreeState();
+    renderNotesTree();
 }
+
+// Совместимость: старая функция теперь просто сворачивает/разворачивает
+function toggleNoteCategory(categoryId) {
+    toggleNoteCategoryExpanded(categoryId);
+}
+
+// Состояние дерева (какие категории раскрыты) запоминается локально
+function persistNotesTreeState() {
+    try {
+        localStorage.setItem('vietnam_map_notes_tree_expanded', JSON.stringify([...expandedCategories]));
+    } catch (e) { /* ignore */ }
+}
+
+(function loadNotesTreeState() {
+    try {
+        const raw = localStorage.getItem('vietnam_map_notes_tree_expanded');
+        if (!raw) return;
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) expandedCategories = new Set(arr);
+    } catch (e) { /* ignore */
+    }
+})();
 
 function selectNoteCategory(categoryId) {
     activeCategory = categoryId;
     activeSubcategory = null;
     currentDraft = null;
     expandedCategories.add(categoryId);
+    persistNotesTreeState();
     renderNotesTree();
     renderNotesList();
     renderNoteEditor(null);
@@ -199,6 +247,7 @@ function selectNoteSubcategory(categoryId, subId) {
     activeSubcategory = subId;
     currentDraft = null;
     expandedCategories.add(categoryId);
+    persistNotesTreeState();
     renderNotesTree();
     renderNotesList();
     renderNoteEditor(null);
@@ -223,6 +272,8 @@ function clearSubcategoryFilter() {
 function renderNotesList(searchQuery) {
     const container = document.getElementById('notes-list');
     if (!container) return;
+
+    renderNotesAllBar();
 
     const q = (searchQuery || '').trim().toLowerCase();
     let list = notesCache;
@@ -290,9 +341,10 @@ function renderNotesList(searchQuery) {
             <div class="empty-state-small">
                 <p>${q || activeTagFilter || activeCityFilter || activeSubcategory
                     ? 'Ничего не найдено по фильтру.'
-                    : 'Пока нет заметок в этой категории. Нажмите «➕ Добавить заметку».'}</p>
+                    : 'Пока нет заметок в этой категории. Нажмите «+ Добавить заметку».'}</p>
             </div>
         `;
+        updateListVisibility();
         return;
     }
 
@@ -305,6 +357,7 @@ function renderNotesList(searchQuery) {
         const cat = getCategoryById(n.category);
         return `
             <div class="note-preview-card ${currentDraft === n.id ? 'active' : ''}" onclick="openNoteDraft('${escapeAttr(n.id)}')">
+                ${(n.images && n.images.length) ? `<div class="note-card-imgwrap"><img class="note-card-img" src="${n.images[0]}" alt=""><span class="note-card-imgcount">📷 ${n.images.length}</span></div>` : ''}
                 <div class="note-preview-title">${cat?.icon || '📌'} ${escapeHtml(n.title || 'Без названия')}</div>
                 ${subName ? `<div class="note-preview-sub">${escapeHtml(subName)}</div>` : ''}
                 ${n.body ? `<div class="note-preview-body">${escapeHtml(n.body.substring(0, 90))}${n.body.length > 90 ? '…' : ''}</div>` : ''}
@@ -318,9 +371,25 @@ function renderNotesList(searchQuery) {
     }).join('');
 
     container.innerHTML = cardsHtml;
+    updateListVisibility();
 }
 
 // -------------------- рендер: чипсы фильтров --------------------
+
+// Индекс хэштегов по всем заметкам: { тег: количество }
+function collectExistingTagCounts() {
+    const tagCounts = {};
+    notesCache.forEach(n => (n.tags || []).forEach(t => {
+        const key = (t || '').trim().toLowerCase();
+        if (key) tagCounts[key] = (tagCounts[key] || 0) + 1;
+    }));
+    return tagCounts;
+}
+
+// Список уже существующих тегов (для выпадающего списка в редакторе)
+function getAllExistingTags() {
+    return Object.keys(collectExistingTagCounts()).sort((a, b) => a.localeCompare(b, 'ru'));
+}
 
 function renderFilterChips() {
     const cityContainer = document.getElementById('notes-filter-cities');
@@ -397,7 +466,97 @@ function filterByTag(tag) {
     renderNotesList();
 }
 
+// -------------------- все заметки: сводка + хэштеги --------------------
+
+function renderNotesAllBar() {
+    const chip = document.getElementById('notes-all-chip');
+    const countEl = document.getElementById('notes-all-count');
+    const hint = document.getElementById('notes-all-hint');
+    const clearBtn = document.getElementById('notes-all-clear');
+    const tagsContainer = document.getElementById('notes-all-tags');
+    if (!countEl || !tagsContainer) return;
+
+    countEl.textContent = notesCache.length;
+
+    const noFilters = !activeCategory && !activeSubcategory && !activeCityFilter && !activeTagFilter;
+    if (chip) chip.classList.toggle('active', noFilters);
+
+    const hasFilters = activeCategory || activeSubcategory || activeCityFilter || activeTagFilter;
+    if (clearBtn) clearBtn.classList.toggle('hidden', !hasFilters);
+    if (hint) {
+        hint.textContent = activeTagFilter
+            ? `Фильтр по тегу: #${activeTagFilter}`
+            : (hasFilters ? '' : 'кликните #хэштег — покажем все заметки с ним');
+    }
+
+    // Индекс хэштегов по всем заметкам без разбора на категории
+    const tagCounts = collectExistingTagCounts();
+    const sorted = Object.entries(tagCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ru'));
+
+    if (sorted.length === 0) {
+        tagsContainer.innerHTML = '<span class="filter-hint">Теги появятся, когда вы их добавите к заметкам.</span>';
+    } else {
+        tagsContainer.innerHTML = sorted.map(([tag, count]) => `
+            <button class="filter-chip tag-chip ${activeTagFilter === tag ? 'active' : ''}" onclick="searchTagAcrossNotes('${escapeAttr(tag)}')">
+                #${escapeHtml(tag)} <span class="filter-chip-count">${count}</span>
+            </button>
+        `).join('');
+    }
+}
+
+// «Все заметки»: сброс категории/подкатегории/городов/тегов — весь список
+function showAllNotes() {
+    activeCategory = null;
+    activeSubcategory = null;
+    activeCityFilter = null;
+    activeTagFilter = null;
+    currentDraft = null;
+    renderNotesTree();
+    renderNotesList();
+    renderFilterChips();
+    renderNoteEditor(null);
+}
+
+// Поиск хэштега по всем заметкам, минуя выбранную категорию
+function searchTagAcrossNotes(tag) {
+    activeTagFilter = activeTagFilter === tag ? null : tag;
+    activeCategory = null;
+    activeSubcategory = null;
+    currentDraft = null;
+    renderNotesTree();
+    renderNotesList();
+    renderFilterChips();
+    renderNoteEditor(null);
+}
+
+function clearAllNoteFilters() {
+    showAllNotes();
+}
+
 // -------------------- рендер: редактор --------------------
+
+// пока открыт редактор — прячем список карточек (иначе overflow карточек
+// наползает на форму); без редактора плашку-подсказку показываем только
+// когда карточки не видны
+function updateListVisibility() {
+    const listEl = document.getElementById('notes-list');
+    const subbarEl = document.getElementById('notes-subbar');
+    const filterBarEl = document.getElementById('notes-filter-bar');
+    const editorEl = document.getElementById('notes-editor');
+    const editing = !!currentDraft;
+    if (listEl) listEl.style.display = editing ? 'none' : '';
+    // видимость subbar в обычном режиме управляет renderNotesList
+    if (subbarEl && editing) subbarEl.style.display = 'none';
+    // панель фильтров (теги/города) не нужна, пока открыт редактор
+    if (filterBarEl) filterBarEl.style.display = editing ? 'none' : '';
+    if (!editorEl) return;
+    if (editing) {
+        editorEl.style.display = '';
+        return;
+    }
+    const listVisible = listEl && listEl.style.display !== 'none' && listEl.children.length > 0;
+    editorEl.style.display = listVisible ? 'none' : '';
+}
 
 function renderNoteEditor(noteOrId) {
     const editor = document.getElementById('notes-editor');
@@ -409,7 +568,10 @@ function renderNoteEditor(noteOrId) {
     //   - объект { __isNew: true }        → создание новой
     if (noteOrId && typeof noteOrId === 'object' && noteOrId.__isNew) {
         currentDraft = 'new';
+        draftImages = [];
         editor.innerHTML = renderEditorForm(noteOrId);
+        updateListVisibility();
+        renderNoteImages();
         updateGeocodeButtonVisibility();
         return;
     }
@@ -418,24 +580,31 @@ function renderNoteEditor(noteOrId) {
         const note = notesCache.find(n => n.id === noteOrId);
         if (!note) {
             currentDraft = null;
+            draftImages = [];
             editor.innerHTML = renderEmptyEditor();
+            updateListVisibility();
             return;
         }
         currentDraft = noteOrId;
+        draftImages = Array.isArray(note.images) ? [...note.images] : [];
         editor.innerHTML = renderEditorForm(note);
+        updateListVisibility();
+        renderNoteImages();
         updateGeocodeButtonVisibility();
         return;
     }
 
     currentDraft = null;
+    draftImages = [];
     editor.innerHTML = renderEmptyEditor();
+    updateListVisibility();
 }
 
 function renderEmptyEditor() {
     return `
         <div class="empty-state">
             <span class="empty-icon">📝</span>
-            <p>Выберите категорию слева и нажмите «➕ Добавить заметку»,<br>или кликните по существующей заметке, чтобы отредактировать.</p>
+            <p>Выберите категорию слева и нажмите «+ Добавить заметку»,<br>или кликните по существующей заметке, чтобы отредактировать.</p>
         </div>
     `;
 }
@@ -463,7 +632,7 @@ function renderEditorForm(note) {
     return `
         <div class="notes-editor-form">
             <div class="notes-editor-header">
-                <input type="text" id="note-title" class="note-title-input" placeholder="Название заметки (например: Стоматология Vinmec)" value="${escapeAttr(n.title || '')}" />
+                <input type="text" id="note-title" class="note-title-input" placeholder="Название заметки (например: Стоматология Vinmec)" value="${escapeAttr(n.title || '')}" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" />
             </div>
 
             <div class="notes-form-grid">
@@ -488,52 +657,70 @@ function renderEditorForm(note) {
 
                 <div class="notes-form-row">
                     <label>Город <span class="hint">(можно ввести свой)</span></label>
-                    <input type="text" id="note-city" list="note-city-list" placeholder="Начните вводить — Ханой, Хошимин..." value="${escapeAttr(getCityName(n.city) || n.city || '')}" autocomplete="off" />
+                    <input type="text" id="note-city" list="note-city-list" placeholder="Например: hanoi" value="${escapeAttr(n.city || '')}" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" />
                     <datalist id="note-city-list">
                         ${cities.map(c => `
-                            <option value="${escapeAttr(c.name)}" data-id="${escapeAttr(c.id)}"></option>
+                            <option value="${escapeAttr(c.id)}">${escapeHtml(c.name)}</option>
                         `).join('')}
                     </datalist>
                 </div>
             </div>
 
+            <div class="notes-form-grid notes-form-grid-2">
+                <div class="notes-form-row">
+                    <label>Теги <span class="hint">(Enter или запятая)</span></label>
+                    <div class="note-tags-input">
+                        <div class="note-tags-list" id="note-tags-list">
+                            ${(n.tags || []).map(t => `
+                                <span class="note-tag-chip removable">#${escapeHtml(t)} <span class="note-tag-remove" onclick="removeNoteTag('${escapeAttr(t)}')">✕</span></span>
+                            `).join('')}
+                        </div>
+                        <input type="text" id="note-tag-input" list="note-existing-tags" placeholder="добавить тег…" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="onNoteTagInputKey(event)" onblur="onNoteTagInputBlur()" />
+                        <datalist id="note-existing-tags">
+                            ${getAllExistingTags().map(t => `<option value="${escapeAttr(t)}"></option>`).join('')}
+                        </datalist>
+                    </div>
+                </div>
+
+                <div class="notes-form-row">
+                    <label>Адрес</label>
+                    <div class="note-address-row">
+                        <input type="text" id="note-address" placeholder="ориентир" value="${escapeAttr(n.address || '')}" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" />
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="startNotePicker()" title="Кликните на карте в нужном месте">📍 На карте</button>
+                        <button type="button" class="btn btn-sm btn-secondary" id="note-geocode-btn" onclick="geocodeNoteAddress()" style="display:none;">🔍</button>
+                    </div>
+                    <div class="note-coords-display" id="note-coords-display">
+                        ${n.coords ? `✅ Точка на карте: ${n.coords[0].toFixed(5)}, ${n.coords[1].toFixed(5)} <button type="button" class="link-btn" onclick="clearNoteCoords()">снять</button>` : 'Точка не выбрана'}
+                    </div>
+                </div>
+            </div>
+
             <div class="notes-form-row">
-                <label>Тип метки на карте <span class="hint">(если есть точка — задаёт цвет)</span></label>
+                <label>Текст заметки</label>
+                <textarea id="note-body" rows="14" placeholder="Подробности: цены, контакты, рекомендации, что понравилось/не понравилось…">${escapeHtml(n.body || '')}</textarea>
+            </div>
+
+            <details class="note-extra" ${n.pinType ? 'open' : ''}>
+                <summary>📍 Метка на карте</summary>
                 <div class="pin-type-picker pin-type-picker-editor">
                     <button type="button" class="pin-type-btn pin-type-none ${(!n.pinType) ? 'active' : ''}" data-type="" onclick="setEditorPinType('')" title="Без метки" aria-label="Без метки">⊘</button>
                     ${Object.entries(pinTypes || {}).map(([type, meta]) => `
                         <button type="button" class="pin-type-btn pin-type-${type} ${n.pinType === type ? 'active' : ''}" data-type="${type}" onclick="setEditorPinType('${type}')" title="${escapeAttr(meta.name)}" aria-label="${escapeAttr(meta.name)}">${meta.icon}</button>
                     `).join('')}
                 </div>
-            </div>
+            </details>
 
             <div class="notes-form-row">
-                <label>Теги <span class="hint">(Enter или запятая — добавить)</span></label>
-                <div class="note-tags-input">
-                    <div class="note-tags-list" id="note-tags-list">
-                        ${(n.tags || []).map(t => `
-                            <span class="note-tag-chip removable">#${escapeHtml(t)} <span class="note-tag-remove" onclick="removeNoteTag('${escapeAttr(t)}')">✕</span></span>
-                        `).join('')}
-                    </div>
-                    <input type="text" id="note-tag-input" placeholder="добавить тег…" onkeydown="onNoteTagInputKey(event)" onblur="onNoteTagInputBlur()" />
+                <label>Фото и скриншоты <span class="hint">(Ctrl+V вставит из буфера; до ${NOTE_IMAGES_LIMIT} шт., сжимаются до 1200px)</span></label>
+                <div class="note-images-drop" id="note-images-drop"
+                     onclick="document.getElementById('note-image-input').click()"
+                     ondragover="event.preventDefault(); this.classList.add('drag')"
+                     ondragleave="this.classList.remove('drag')"
+                     ondrop="event.preventDefault(); this.classList.remove('drag'); onNoteImageDrop(event)">
+                    <span>📷 Перетащите картинки сюда или нажмите, чтобы выбрать</span>
+                    <input type="file" id="note-image-input" accept="image/*" multiple hidden onchange="onNoteImageInput(this)">
                 </div>
-            </div>
-
-            <div class="notes-form-row">
-                <label>Адрес</label>
-                <div class="note-address-row">
-                    <input type="text" id="note-address" placeholder="Точный адрес или ориентир" value="${escapeAttr(n.address || '')}" />
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="startNotePicker()" title="Кликните на карте в нужном месте">📍 На карте</button>
-                    <button type="button" class="btn btn-sm btn-secondary" id="note-geocode-btn" onclick="geocodeNoteAddress()" style="display:none;">🔍 Найти</button>
-                </div>
-                <div class="note-coords-display" id="note-coords-display">
-                    ${n.coords ? `✅ Точка на карте: ${n.coords[0].toFixed(5)}, ${n.coords[1].toFixed(5)} <button type="button" class="link-btn" onclick="clearNoteCoords()">снять</button>` : 'Точка не выбрана'}
-                </div>
-            </div>
-
-            <div class="notes-form-row">
-                <label>Текст заметки</label>
-                <textarea id="note-body" rows="8" placeholder="Подробности: цены, контакты, рекомендации, что понравилось/не понравилось…">${escapeHtml(n.body || '')}</textarea>
+                <div class="note-images-list" id="note-images-list"></div>
             </div>
 
             <div class="notes-editor-actions">
@@ -546,21 +733,142 @@ function renderEditorForm(note) {
     `;
 }
 
+// -------------------- фото и скриншоты --------------------
+
+const NOTE_IMAGES_LIMIT = 10;
+
+// Миниатюры в редакторе
+function renderNoteImages() {
+    const list = document.getElementById('note-images-list');
+    if (!list) return;
+    list.innerHTML = draftImages.map((src, i) => `
+        <div class="note-image-thumb">
+            <img src="${src}" alt="Фото ${i + 1}" onclick="previewNoteImage(${i})">
+            <span class="note-image-remove" title="Удалить фото" onclick="removeNoteImage(${i})">✕</span>
+        </div>
+    `).join('') + (draftImages.length ? '' : '<span class="filter-hint">Фото пока не добавлены</span>');
+}
+
+function addNoteImage(dataUrl) {
+    if (!currentDraft) return;
+    if (draftImages.length >= NOTE_IMAGES_LIMIT) {
+        alert(`Максимум ${NOTE_IMAGES_LIMIT} фото на заметку.`);
+        return;
+    }
+    draftImages.push(dataUrl);
+    renderNoteImages();
+
+    // Предупреждение, если заметка с фото становится слишком большой для облака (лимит D1 ~2 МБ на запись)
+    const totalKb = draftImages.reduce((sum, s) => sum + s.length, 0) / 1024;
+    if (totalKb > 1400) {
+        alert('Много фото: заметка стала очень большой и может не синхронизироваться с облаком.');
+    }
+}
+
+function removeNoteImage(index) {
+    draftImages.splice(index, 1);
+    renderNoteImages();
+}
+
+// Просмотр на весь экран (общий лайтбокс)
+function previewNoteImage(index) {
+    const lightbox = document.getElementById('route-lightbox');
+    const img = document.getElementById('lightbox-img');
+    if (!lightbox || !img) return;
+    img.src = draftImages[index];
+    lightbox.classList.remove('hidden');
+}
+
+// Файлы из input / drag&drop / буфера обмена
+function onNoteImageInput(input) {
+    handleNoteImageFiles(input.files || []);
+    input.value = '';
+}
+
+function onNoteImageDrop(event) {
+    handleNoteImageFiles(event.dataTransfer?.files || []);
+}
+
+async function handleNoteImageFiles(files) {
+    if (!currentDraft) return;
+    for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        try {
+            addNoteImage(await compressImageToDataUrl(file));
+        } catch (e) {
+            console.warn('Image compress failed:', e);
+            alert('Не удалось обработать изображение: ' + file.name);
+        }
+        if (draftImages.length >= NOTE_IMAGES_LIMIT) break;
+    }
+}
+
+// Сжатие: максимум 1200px по большей стороне, JPEG
+function compressImageToDataUrl(file, maxSide = 1200, quality = 0.72) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+            try {
+                const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+                const width = Math.max(1, Math.round(img.width * scale));
+                const height = Math.max(1, Math.round(img.height * scale));
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            } catch (e) {
+                reject(e);
+            } finally {
+                URL.revokeObjectURL(url);
+            }
+        };
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error('Не удалось прочитать изображение'));
+        };
+        img.src = url;
+    });
+}
+
+// Вставка скриншота из буфера (Ctrl+V) в открытый редактор
+document.addEventListener('paste', (e) => {
+    if (!currentDraft) return;
+    const items = e.clipboardData?.items || [];
+    const files = [];
+    for (const item of items) {
+        if (item.type && item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) files.push(file);
+        }
+    }
+    if (files.length) {
+        e.preventDefault();
+        handleNoteImageFiles(files);
+    }
+});
+
 function getDraftNote() {
     const tags = Array.from(document.querySelectorAll('#note-tags-list .note-tag-chip'))
         .map(el => el.dataset.tag)
         .filter(Boolean);
     const pinTypeVal = document.querySelector('.pin-type-picker-editor .pin-type-btn.active')?.dataset.type || '';
+    const cityInput = document.getElementById('note-city')?.value.trim() || '';
+    const cityId = resolveCityValue(cityInput);
+    // если город распознан — cityName держим человекочитаемым, иначе свободный ввод
+    const cityName = cityId ? (getCityName(cityId) || cityInput) : cityInput;
     return {
         title: document.getElementById('note-title')?.value.trim() || '',
         category: document.getElementById('note-category')?.value || 'other',
         subcategory: document.getElementById('note-subcategory')?.value || '',
-        city: resolveCityValue(document.getElementById('note-city')?.value || ''),
-        cityName: document.getElementById('note-city')?.value.trim() || '',
+        city: cityId,
+        cityName,
         address: document.getElementById('note-address')?.value.trim() || '',
         body: document.getElementById('note-body')?.value.trim() || '',
         tags,
-        pinType: pinTypeVal || null
+        pinType: pinTypeVal || null,
+        images: [...draftImages]
     };
 }
 
@@ -577,8 +885,9 @@ function resolveCityValue(input) {
     const v = (input || '').trim();
     if (!v) return null;
     const cities = (window.VIETNAM_DATA?.cities) || [];
-    // точное совпадение по name (ru/en-варианту)
+    // точное совпадение по id (латиница), name (ru) и en-варианту
     const exact = cities.find(c =>
+        c.id.toLowerCase() === v.toLowerCase() ||
         c.name.toLowerCase() === v.toLowerCase() ||
         (c.nameViet && c.nameViet.toLowerCase() === v.toLowerCase())
     );
@@ -1009,6 +1318,7 @@ window.removeNoteTag = removeNoteTag;
 window.onNoteTagInputKey = onNoteTagInputKey;
 window.onNoteCategoryChange = onNoteCategoryChange;
 window.toggleNoteCategory = toggleNoteCategory;
+window.toggleNoteCategoryExpanded = toggleNoteCategoryExpanded;
 window.selectNoteCategory = selectNoteCategory;
 window.selectNoteSubcategory = selectNoteSubcategory;
 window.filterByCity = filterByCity;
@@ -1016,6 +1326,13 @@ window.filterByTag = filterByTag;
 window.clearCityFilter = clearCityFilter;
 window.filterBySubcategory = filterBySubcategory;
 window.clearSubcategoryFilter = clearSubcategoryFilter;
+window.removeNoteImage = removeNoteImage;
+window.previewNoteImage = previewNoteImage;
+window.onNoteImageInput = onNoteImageInput;
+window.onNoteImageDrop = onNoteImageDrop;
+window.showAllNotes = showAllNotes;
+window.searchTagAcrossNotes = searchTagAcrossNotes;
+window.clearAllNoteFilters = clearAllNoteFilters;
 window.onNoteTagInputBlur = onNoteTagInputBlur;
 window.addCustomCategoryPrompt = addCustomCategoryPrompt;
 window.addCustomSubcategoryPrompt = addCustomSubcategoryPrompt;
