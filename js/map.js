@@ -42,37 +42,40 @@ function initMap() {
         maxZoom: 19
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
+    // Базовые слои — только бесплатные без API-ключа (Esri ArcGIS Online).
+    // CartoDB (водяные знаки «API KEY REQUIRED» с 2025), OSM (403 по политике
+    // использования) и Stamen (платный ключ Stadia) больше не используются.
+    const esriStreet = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri — Source: Esri, DeLorme, NAVTEQ',
         maxZoom: 19
     }).addTo(map);
 
-    const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
+    const esriTopo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri — Source: Esri, DeLorme, NAVTEQ, TomTom',
         maxZoom: 19
     });
 
-    const stamenTonerLite = L.tileLayer('https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: 'abcd',
-        maxZoom: 18
+    const esriImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye',
+        maxZoom: 19
+    });
+
+    // Оверлей «только подписи» — полезен поверх спутника
+    const labelsOverlay = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Labels &copy; Esri',
+        maxZoom: 19
     });
 
     const baseMaps = {
-        "CartoDB Voyager": L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map),
-        "OpenStreetMap": osmLayer,
-        "Stamen (подписи)": stamenTonerLite,
-        "Спутник": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri',
-            maxZoom: 18
-        })
+        "Улицы (Esri)": esriStreet,
+        "Топография (Esri)": esriTopo,
+        "Спутник (Esri)": esriImagery
+    };
+    const overlayMaps = {
+        "Подписи городов": labelsOverlay
     };
 
-    L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+    L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(map);
     L.control.scale({ metric: true, imperial: false }).addTo(map);
 
     boundariesRenderer = L.canvas({ padding: 0.5 }).addTo(map);
@@ -668,7 +671,13 @@ async function buildRouteOnRoads() {
 }
 
 async function fetchRouteFromOSRM(waypoints) {
-    const orsKey = localStorage.getItem('vietnam_map_ors_key');
+    // Ключ берём из настроек (облако + fallback localStorage);
+    // localStorage['vietnam_map_ors_key'] сюда никогда не писался —
+    // из-за этого ключ, введённый в Settings, игнорировался
+    const savedKey = typeof getSettings === 'function'
+        ? (await getSettings())?.orsKey
+        : null;
+    const orsKey = savedKey || localStorage.getItem('vietnam_map_ors_key') || '';
 
     if (orsKey) {
         try {

@@ -672,7 +672,7 @@ function renderEditorForm(note) {
                     <div class="note-tags-input">
                         <div class="note-tags-list" id="note-tags-list">
                             ${(n.tags || []).map(t => `
-                                <span class="note-tag-chip removable">#${escapeHtml(t)} <span class="note-tag-remove" onclick="removeNoteTag('${escapeAttr(t)}')">✕</span></span>
+                                <span class="note-tag-chip removable" data-tag="${escapeAttr(t)}">#${escapeHtml(t)} <span class="note-tag-remove" onclick="removeNoteTag('${escapeAttr(t)}')">✕</span></span>
                             `).join('')}
                         </div>
                         <input type="text" id="note-tag-input" list="note-existing-tags" placeholder="добавить тег…" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="onNoteTagInputKey(event)" onblur="onNoteTagInputBlur()" />

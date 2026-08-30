@@ -1198,7 +1198,7 @@ const VIETNAM_DATA = {
             to: "halong-port",
             type: "info",
             color: "#22d3ee",
-            image: "https://images.unsplash.com/photo-1506318137071-a8bcbf6745dd?w=600&q=80",
+            image: "https://images.unsplash.com/photo-1506665531195-3566af2b4dfa?w=600&q=80",
             description: "Международные круизы из Халонга в Гонконг/Шанхай. Линия не отображается на карте — морской маршрут.",
             getyourguide: "https://www.getyourguide.com/ru-ru/hong-kong-l163/"
         },
@@ -1209,7 +1209,7 @@ const VIETNAM_DATA = {
             to: "hcmc-port",
             type: "info",
             color: "#22d3ee",
-            image: "https://images.unsplash.com/photo-1566604887272-ef8d55ee7e6c?w=600&q=80",
+            image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?w=600&q=80",
             description: "Международный речной круиз по Меконгу до Камбоджи. Билеты на сезон осень 2026 — уточняйте у операторов.",
             getyourguide: "https://www.getyourguide.com/ru-ru/phnom-penh-l313/"
         },
