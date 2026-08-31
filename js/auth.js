@@ -85,7 +85,8 @@ function showLoginScreen(errorMessage = '') {
 function showMainApp() {
     const app = document.querySelector('.app');
     const loginScreen = document.getElementById('login-screen');
-    if (app) app.style.display = 'flex';
+    // '' — пусть управляет CSS (на десктопе flex, на мобильных block)
+    if (app) app.style.display = '';
     if (loginScreen) loginScreen.classList.add('hidden');
 }
 

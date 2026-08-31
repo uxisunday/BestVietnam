@@ -58,11 +58,44 @@ function initTabs() {
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const tabId = item.dataset.tab;
+            if (!tabId) return; // «Ещё» и прочие кнопки без вкладки обрабатываются отдельно
             switchTab(tabId);
 
             navItems.forEach(nav => nav.classList.remove('active'));
             item.classList.add('active');
         });
+    });
+
+    initNavMoreSheet();
+}
+
+// Мобильная навигация: нижняя панель + шит «Ещё» (погода / планнер / настройки)
+function initNavMoreSheet() {
+    const trigger = document.getElementById('nav-more-trigger');
+    const sheet = document.getElementById('nav-more-sheet');
+    if (!trigger || !sheet) return;
+
+    const closeSheet = () => {
+        sheet.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+    };
+    window.closeNavMoreSheet = closeSheet;
+
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = !sheet.classList.contains('hidden');
+        sheet.classList.toggle('hidden', isOpen);
+        trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    });
+
+    sheet.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-item')) closeSheet();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (sheet.classList.contains('hidden')) return;
+        if (e.target.closest('#nav-more-sheet') || e.target.closest('#nav-more-trigger')) return;
+        closeSheet();
     });
 }
 
@@ -77,6 +110,13 @@ function switchTab(tabId) {
 
     const targetNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
     if (targetNav) targetNav.classList.add('active');
+
+    // На мобильных: если активная вкладка лежит в шите «Ещё» — подсвечиваем триггер
+    const moreTrigger = document.getElementById('nav-more-trigger');
+    if (moreTrigger) {
+        const inSheet = targetNav && targetNav.closest('#nav-more-sheet') && !targetNav.offsetParent;
+        moreTrigger.classList.toggle('nav-more-active', Boolean(inSheet));
+    }
 
     // Если переключаемся на карту — обновляем размер
     if (tabId === 'map' && map) {

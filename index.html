@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Vietnam Travel Map 2026</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
     <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.css" />
-    <link rel="stylesheet" href="css/style.css?v=20260830-4">
+    <link rel="stylesheet" href="css/style.css?v=20260831-1">
 </head>
 <body>
     <!-- Экран входа -->
@@ -52,10 +52,6 @@
                     <span class="nav-icon">🗺️</span>
                     <span class="nav-text">Vietnam Map</span>
                 </button>
-                <button class="nav-item" data-tab="weather">
-                    <span class="nav-icon">🌤️</span>
-                    <span class="nav-text">Weather</span>
-                </button>
                 <button class="nav-item" data-tab="routes">
                     <span class="nav-icon">🛤️</span>
                     <span class="nav-text">Routes</span>
@@ -68,15 +64,37 @@
                     <span class="nav-icon">💰</span>
                     <span class="nav-text">Траты</span>
                 </button>
-                <button class="nav-item" data-tab="planner">
+                <button class="nav-item nav-secondary" data-tab="weather">
+                    <span class="nav-icon">🌤️</span>
+                    <span class="nav-text">Weather</span>
+                </button>
+                <button class="nav-item nav-secondary" data-tab="planner">
                     <span class="nav-icon">📅</span>
                     <span class="nav-text">Планнер</span>
                 </button>
-                <button class="nav-item" data-tab="settings">
+                <button class="nav-item nav-secondary" data-tab="settings">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-text">Settings</span>
                 </button>
+                <button class="nav-item nav-more-trigger" id="nav-more-trigger" aria-expanded="false" aria-controls="nav-more-sheet">
+                    <span class="nav-icon">⋯</span>
+                    <span class="nav-text">Ещё</span>
+                </button>
             </nav>
+            <div class="nav-sheet hidden" id="nav-more-sheet" role="menu" aria-label="Другие разделы">
+                <button class="nav-item" data-tab="weather" role="menuitem">
+                    <span class="nav-icon">🌤️</span>
+                    <span class="nav-text">Weather</span>
+                </button>
+                <button class="nav-item" data-tab="planner" role="menuitem">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Планнер</span>
+                </button>
+                <button class="nav-item" data-tab="settings" role="menuitem">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Settings</span>
+                </button>
+            </div>
             <div class="sidebar-footer">
                 <small>Vietnam 2026 • Prototype</small>
             </div>
@@ -647,14 +665,14 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.js"></script>
-    <script src="js/data.js?v=20260830-4"></script>
-    <script src="js/auth.js?v=20260830-4"></script>
-    <script src="js/sync.js?v=20260830-4"></script>
-    <script src="js/map.js?v=20260830-4"></script>
-    <script src="js/weather.js?v=20260830-4"></script>
-    <script src="js/notes.js?v=20260830-4"></script>
-    <script src="js/routes.js?v=20260830-4"></script>
-    <script src="js/expenses.js?v=20260830-4"></script>
-    <script src="js/app.js?v=20260830-4"></script>
+    <script src="js/data.js?v=20260831-1"></script>
+    <script src="js/auth.js?v=20260831-1"></script>
+    <script src="js/sync.js?v=20260831-1"></script>
+    <script src="js/map.js?v=20260831-1"></script>
+    <script src="js/weather.js?v=20260831-1"></script>
+    <script src="js/notes.js?v=20260831-1"></script>
+    <script src="js/routes.js?v=20260831-1"></script>
+    <script src="js/expenses.js?v=20260831-1"></script>
+    <script src="js/app.js?v=20260831-1"></script>
 </body>
 </html>

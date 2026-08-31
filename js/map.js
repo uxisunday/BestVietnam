@@ -36,6 +36,17 @@ const MARKER_COLORS = {
 };
 
 function initMap() {
+    // На мобильных конструктор маршрута стартует свёрнутым (нижний шит),
+    // чтобы не закрывать карту — открывается кнопкой «Маршрут»
+    if (window.matchMedia('(max-width: 900px)').matches) {
+        const panel = document.getElementById('route-builder-panel');
+        const toggle = document.getElementById('builder-toggle');
+        if (panel && toggle) {
+            panel.classList.add('collapsed');
+            toggle.classList.remove('hidden');
+        }
+    }
+
     map = L.map('map', {
         center: VIETNAM_DATA.center,
         zoom: VIETNAM_DATA.zoom,
