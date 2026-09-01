@@ -108,12 +108,32 @@ async function saveSettings(settings) {
 // -----------------------------
 // Expenses
 // -----------------------------
+function parseLocalArray(key) {
+    const fallback = getLocalFallback(key);
+    if (!fallback) return null;
+    try {
+        const parsed = JSON.parse(fallback);
+        return Array.isArray(parsed) ? parsed : null;
+    } catch (e) {
+        return null;
+    }
+}
+
 async function getExpenses() {
     const cloud = await loadFromCloud('expenses');
-    if (cloud !== null) return Array.isArray(cloud) ? cloud : [];
+    const local = parseLocalArray(DATA_KEYS.expenses);
 
-    const fallback = getLocalFallback(DATA_KEYS.expenses);
-    return fallback ? JSON.parse(fallback) : [];
+    // Облако — основной источник, НО пустой массив в облаке не должен затирать
+    // локальные записи: траты могли быть добавлены офлайн или не доехать до облака.
+    // Пустое облако + данные локально = локальное — истина, дотягиваем его в облако.
+    if (Array.isArray(cloud) && cloud.length > 0) return cloud;
+
+    if (local && local.length > 0) {
+        saveToCloud('expenses', local); // fire-and-forget: если облако снова пусто, дольём
+        return local;
+    }
+    if (local) return local;
+    return Array.isArray(cloud) ? cloud : [];
 }
 
 async function saveExpenses(expenses) {

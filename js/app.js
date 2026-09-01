@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Кэш всех данных, загруженных из облака
-window.window.appData = {
+window.appData = {
     settings: null,
     expenses: null,
     routes: null,

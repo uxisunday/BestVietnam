@@ -46,6 +46,35 @@ function initWeather() {
             filterWeatherList(e.target.value);
         });
     }
+
+    initWeatherCityPicker();
+}
+
+// Мобильный выбор места: селект вместо длинного списка (на десктопе блок скрыт)
+function initWeatherCityPicker() {
+    const select = document.getElementById('weather-city-select');
+    if (!select) return;
+
+    const groups = [
+        { title: 'Города', items: VIETNAM_DATA.cities },
+        { title: 'Пляжи', items: VIETNAM_DATA.beaches },
+        { title: 'Достопримечательности', items: VIETNAM_DATA.attractions }
+    ];
+    select.innerHTML = '<option value="" disabled selected>Выберите место…</option>' + groups.map(g => `
+        <optgroup label="${g.title}">
+            ${g.items.map(item => `<option value="${escapeAttr(item.id)}">${escapeHtml(item.name)}</option>`).join('')}
+        </optgroup>
+    `).join('');
+
+    select.addEventListener('change', () => {
+        if (select.value) selectWeatherItem(select.value);
+    });
+
+    // На мобиле сразу показываем прогноз по умолчанию — без лишнего клика
+    if (window.matchMedia('(max-width: 900px)').matches) {
+        select.value = 'hanoi';
+        selectWeatherItem('hanoi');
+    }
 }
 
 function getAllWeatherItems() {

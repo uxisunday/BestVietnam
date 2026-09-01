@@ -212,7 +212,11 @@ async function getTopCategory() {
 
 async function updateBudgetUI(useCached = false) {
     const budgetRub = useCached ? (window.appData.settings?.budgetRub || 600000) : await getBudget();
-    const expenses = useCached ? window.appData.expenses : await getExpenses();
+    const expenses = useCached ? (window.appData.expenses || []) : await getExpenses();
+    // Единый источник: что получили — то и истина для дашборда И вкладки «Траты».
+    // Иначе дашборд пересчитывается из облака, а список остаётся из кэша — и вкладки расходятся.
+    window.appData.expenses = expenses;
+    if (window.appData.settings) window.appData.settings.budgetRub = budgetRub;
     const spentVnd = expenses.reduce((sum, e) => sum + e.amount, 0);
     const spentRub = vndToRub(spentVnd);
     const remainingRub = budgetRub - spentRub;

@@ -4013,6 +4013,22 @@ input[type="number"]:focus {
         padding: 16px;
     }
 
+    /* Грид-элементы должны уметь сжиматься ниже min-width:
+       иначе nowrap-ленты (чипы заметок, чипы слоёв карты) растягивают
+       колонку до своей ширины и контент обрезается справа */
+    .weather-layout > *,
+    .routes-layout > *,
+    .notes-layout > *,
+    .expenses-layout > *,
+    .routes-layout-v2 > *,
+    .planner-layout > * {
+        min-width: 0;
+    }
+
+    #tab-map.active > * {
+        min-width: 0;
+    }
+
     .notes-content .notes-list-grid {
         min-height: 0;
     }
@@ -4274,9 +4290,16 @@ img {
 
     .filter-chip {
         padding: 10px 14px;
+        min-height: 40px;
         border-radius: var(--radius-pill);
         font-size: 13px;
         flex: 0 0 auto;
+    }
+
+    /* в лентах чипы чуть компактнее, но не ниже 36px по тач-высоте */
+    .notes-subbar .filter-chip {
+        min-height: 36px;
+        padding: 8px 12px;
     }
 
     .notes-all-chip {
@@ -4398,9 +4421,15 @@ img {
     }
 
     /* --- Notes: чипы — горизонтальные ленты --- */
+    .notes-filter-row {
+        /* иначе align-items:flex-start даёт ленте ширину контента — вылезает за контент */
+        align-items: stretch;
+    }
+
     .filter-chips {
         flex-wrap: nowrap;
         overflow-x: auto;
+        max-width: 100%;
         padding-bottom: 2px;
         scrollbar-width: none;
     }
@@ -4600,6 +4629,40 @@ img {
         right: 12px;
         bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 12px);
         max-width: calc(100vw - 24px);
+    }
+}
+
+/* --- Weather: на мобиле длинный список городов заменяется селектом --- */
+.weather-mobile-picker {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .weather-mobile-picker {
+        display: block;
+        padding: 12px 16px;
+    }
+
+    .weather-mobile-picker select {
+        width: 100%;
+        min-height: 44px;
+        padding: 10px 14px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        font-size: 16px;
+        font-family: inherit;
+    }
+
+    .weather-mobile-picker select:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+
+    /* Сайдбар со списком скрыт: подробный прогноз следует сразу под селектом */
+    .weather-sidebar {
+        display: none;
     }
 }
 
