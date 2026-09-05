@@ -204,8 +204,7 @@ h3 {
 #tab-planner > *,
 #tab-notes > *,
 #tab-expenses > *,
-#tab-settings > *,
-#tab-guide > * {
+#tab-settings > * {
     max-width: 1360px;
     margin-left: auto;
     margin-right: auto;
