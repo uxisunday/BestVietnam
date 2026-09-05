@@ -1,0 +1,4 @@
+# Служебные файлы работы над сайтом — в репо не храним
+guide_assets/preview*.png
+guide_assets/embed.py
+guide_assets/verify_guide_tab.py
