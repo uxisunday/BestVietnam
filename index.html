@@ -10,7 +10,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
     <link rel="stylesheet" href="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.20/leaflet-maplibre-gl.css" />
-    <link rel="stylesheet" href="css/style.css?v=20260831-2">
+    <link rel="stylesheet" href="css/style.css?v=20260905-1">
+    <link rel="stylesheet" href="css/guide.css?v=20260905-1">
 </head>
 <body>
     <!-- Экран входа -->
@@ -72,6 +73,10 @@
                     <span class="nav-icon">📅</span>
                     <span class="nav-text">Планнер</span>
                 </button>
+                <button class="nav-item nav-secondary" data-tab="guide">
+                    <span class="nav-icon">🏔️</span>
+                    <span class="nav-text">Гайд: север</span>
+                </button>
                 <button class="nav-item nav-secondary" data-tab="settings">
                     <span class="nav-icon">⚙️</span>
                     <span class="nav-text">Settings</span>
@@ -89,6 +94,10 @@
                 <button class="nav-item" data-tab="planner" role="menuitem">
                     <span class="nav-icon">📅</span>
                     <span class="nav-text">Планнер</span>
+                </button>
+                <button class="nav-item" data-tab="guide" role="menuitem">
+                    <span class="nav-icon">🏔️</span>
+                    <span class="nav-text">Гайд: север</span>
                 </button>
                 <button class="nav-item" data-tab="settings" role="menuitem">
                     <span class="nav-icon">⚙️</span>
@@ -654,6 +663,423 @@
                         <div class="card-label">АККАУНТ</div>
                         <button class="btn btn-danger" id="logout-btn" style="width: 100%;">🚪 Выйти</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- Гайд: Север Вьетнама -->
+            <section class="tab" id="tab-guide">
+                <header class="page-header">
+                    <h1>🏔️ Север Вьетнама: где жить</h1>
+                    <p class="subtitle">Полевой дневник · сентябрь–октябрь 2026 · Ханой, база на месяц + 8 мест, куда уехать жить без толп и буклетов</p>
+                </header>
+
+                <p class="g-lede">Сентябрь и октябрь — лучшее время на севере Вьетнама, и это почти секрет: все едут на юг «на море». А здесь в это время зреет рис, заканчиваются дожди, в Ханое +25…31 и праздник середины осени, а в горах — единственные две недели в году, когда террасы цвета золота.</p>
+                <p class="g-lede muted">Гайд — не про «топ-10 достопримечательностей». Он про то, где <em>жить</em>: в каком районе Ханоя снимать квартиру на месяц и в каких не распиаренных городках и деревнях пожить по две-три недели, чтобы севера было не «посмотрел», а «прожил».</p>
+
+                <div class="g-factrow">
+                    <div class="g-fact"><b>Ханой, сентябрь</b><span>+25…31 °C, вечерние ливни на исходе</span></div>
+                    <div class="g-fact"><b>Ханой, октябрь</b><span>+22…28 °C, сухо и ясно</span></div>
+                    <div class="g-fact"><b>Горы (Сапа и выше)</b><span>+16…23 °C, ночью +8–10 °C холоднее</span></div>
+                    <div class="g-fact"><b>Золотой сезон</b><span>террасы: ~20.09 – 10.10</span></div>
+                </div>
+
+                <div class="g-sec" id="g-hanoi">
+                    <span class="g-secno">01 · ХАНОЙ</span>
+                    <h2>В каком районе жить</h2>
+                    <p class="g-sub">Первая база на 2–4 недели. Логика простая: первые 3–5 дней — Старый квартал ради атмосферы, потом переезжайте туда, где можно спать и работать. Почти все экспаты и номады в итоге оседают у Западного озера.</p>
+
+                    <figure class="g-banner">
+                        <img src="guide_assets/hanoi-tayho.jpg" alt="Западное озеро (Хо Тэй) в Ханое">
+                        <figcaption>Западное озеро — 17 км берега внутри города</figcaption>
+                    </figure>
+
+                    <div class="g-hgrid">
+                        <div class="g-dcard pick">
+                            <span class="g-tag">База №1 на месяц+</span>
+                            <h3>Тэй Хо — Западное озеро</h3>
+                            <p>17 км берега самого большого озера города, тихие улицы, кофейни и рестораны вдоль Сюан Дьеу и Данг Тхай Май, международная тусовка, английский везде. Граб в центр — 20 минут и 50–80 тыс. донгов.</p>
+                            <p class="g-plus"><b>+</b> тишина, озеро, работа <span class="m">/ − дороже центра на 30–50%, метро пока нет</span></p>
+                            <p class="g-price">1BR: <b>$500–900</b> · через FB-группы реально <b>$350–450</b></p>
+                            <div class="g-dfoot">
+                                <span class="g-coordline">21.0651, 105.8254</span>
+                                <a class="g-mlink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.0651,105.8254"><span class="g-pin"></span>Карта</a>
+                            </div>
+                        </div>
+
+                        <div class="g-dcard">
+                            <span class="g-tag">Недооценённая середина</span>
+                            <h3>Чук Бать</h3>
+                            <p>Микрорайон у одноимённого озера между Старым кварталом и Ба Динь. Тише центра, ближе к жизни, заметно дешевле западного берега Тэй Хо. Вечерние кофейни у воды, пекарни, всё пешком.</p>
+                            <p class="g-plus"><b>+</b> баланс цены и локации <span class="m">/ − меньше экспат-инфраструктуры</span></p>
+                            <p class="g-price">1BR: <b>$400–650</b></p>
+                            <div class="g-dfoot">
+                                <span class="g-coordline">21.0578, 105.8381</span>
+                                <a class="g-mlink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.0578,105.8381"><span class="g-pin"></span>Карта</a>
+                            </div>
+                        </div>
+
+                        <div class="g-dcard">
+                            <span class="g-tag">Спокойный и зелёный</span>
+                            <h3>Ба Динь</h3>
+                            <p>Посольский квартал: мавзолей Хо Ши Мина, храм Литературы, широкие аллеи. Живут семьи и дипломаты, по ночам тихо. Хорош, если хотите быть «в городе», но не в его шуме.</p>
+                            <p class="g-plus"><b>+</b> зелень, безопасность <span class="m">/ − спокойнее до скуки по вечерам</span></p>
+                            <p class="g-price">1BR: <b>$500–800</b></p>
+                            <div class="g-dfoot">
+                                <span class="g-coordline">21.0360, 105.8120</span>
+                                <a class="g-mlink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.0360,105.8120"><span class="g-pin"></span>Карта</a>
+                            </div>
+                        </div>
+
+                        <div class="g-dcard">
+                            <span class="g-tag">Лучшая цена</span>
+                            <h3>Кау Зяй / Мидинь</h3>
+                            <p>Современные дома, технопарк, студенты и айтишники, настоящая местная жизнь, а не сцена для туристов. До Старого квартала — 20–30 минут грабом.</p>
+                            <p class="g-plus"><b>+</b> современные квартиры за полцены <span class="m">/ − далеко до достопримечательностей</span></p>
+                            <p class="g-price">1BR: <b>$400–700</b></p>
+                            <div class="g-dfoot">
+                                <span class="g-coordline">21.0306, 105.7950</span>
+                                <a class="g-mlink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.0306,105.7950"><span class="g-pin"></span>Карта</a>
+                            </div>
+                        </div>
+
+                        <div class="g-dcard">
+                            <span class="g-tag">Только на 3–5 дней</span>
+                            <h3>Старый квартал</h3>
+                            <p>Хаос, уличная еда, озеро Хоан Кием, колониальные фасады — жить тут стоит ровно одну «атмосферную» неделю на старте. Шум до часу ночи, торговцы с шести утра. Беруши — не совет, а необходимость.</p>
+                            <p class="g-plus"><b>+</b> максимум Вьетнама на квадратный метр <span class="m">/ − не для сна и работы</span></p>
+                            <p class="g-price">$20–40/ночь · в месяц <b>$495–905</b></p>
+                            <div class="g-dfoot">
+                                <span class="g-coordline">21.0349, 105.8510</span>
+                                <a class="g-mlink" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.0349,105.8510"><span class="g-pin"></span>Карта</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top:32px; font-family:'Lora',Georgia,serif; font-size:20px;">Как снимать жильё на месяц</h3>
+                    <div class="g-howto">
+                        <div class="g-step"><b>1. Первые 1–2 недели — Booking/Agoda</b><span>Снимите точку старта, осмотритесь и смотрите квартиры вживую, а не по фото.</span></div>
+                        <div class="g-step"><b>2. Facebook-группы</b><span>«Hanoi Expats», «Tay Ho Apartments», «Hanoi Housing» — там половина рынка. Квартиры за $350–450 всплывают именно тут.</span></div>
+                        <div class="g-step"><b>3. Telegram @vietnam_rent</b><span>Русскоязычные чаты аренды: @vietnam_rent и городские чаты. Цены на 1,5–2 ниже Airbnb.</span></div>
+                        <div class="g-step"><b>4. Депозит и договор</b><span>Депозит — 1 месяц, при долгом сроке всегда торгуйтесь. Проверьте, что владелец регистрирует вас во временной прописке (tạm trú).</span></div>
+                        <div class="g-step"><b>5. Очиститель воздуха</b><span>Главная боль Ханоя — воздух, особенно с ноября. Уточняйте, есть ли в квартире очиститель, иначе закладывайте $40–70.</span></div>
+                        <div class="g-step"><b>6. Запасной интернет</b><span>Стационарный интернет + SIM Viettel в телефон как 4G-резерв для звонков.</span></div>
+                    </div>
+                </div>
+
+                <div class="g-sec" id="g-karst">
+                    <span class="g-secno">02 · КАРСТ И ВОДА</span>
+                    <h2>Карст, реки, озёра</h2>
+                    <p class="g-sub">Знаменитый «сухой Халонг» — скалы-башни над рисовыми полями и зелёными реками. Места, где легко жить неделями: дёшево, красиво, всё под боком на байке.</p>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/tamcoc.jpg" alt="Лодки в Там Коке среди карстовых скал"><span class="g-badge">База на 2–4 недели</span></div>
+                        <div class="g-body">
+                            <h3>Нинь Бинь: Там Кок и Бич Донг</h3>
+                            <div class="g-coords">20.2570, 105.8970 (Там Кок) · Бич Донг 20.2498, 105.9040</div>
+                            <div class="g-story">
+                                <p>Деревня Там Кок стоит среди рисовых полей, из которых растут известняковые башни. Жизнь тут дешёвая и неторопливая: утром — лодка между скалами, днём — гора Муа (500 ступеней, лучший вид в провинции), вечером — хомстей, велосипед и уличная еда в двухстах метрах.</p>
+                                <p>Район Бич Донг чуть тише Там Кока, а <strong>Ван Лонг</strong> — это «Там Кок без толп»: тот же карст и лодки по заповеднику, но вместо групп — цапли и тишина. В октябре поля снова зелёные, свет мягкий — лучший месяц для жизни здесь вместе с ноябрём.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>хомстеи $15–30/ночь, Airbnb от 28 дней — со скидкой</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="ok">стабильный, звонки — да</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>1,5–2 ч на байке или лимузин-басом из Ханоя</b></div>
+                                <div class="g-cell"><span>Сезон</span><b class="gold">октябрь–ноябрь — идеально</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">лодки Чанган (ЮНЕСКО)</span>
+                                <span class="g-chip">гора Муа</span>
+                                <span class="g-chip">древняя столица Хоалы</span>
+                                <span class="g-chip">пагода Байдинь</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.2570,105.8970">📍 Там Кок на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.3370,105.8560">Ван Лонг</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.2509,105.8731">Гора Муа</a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/babe.jpg" alt="Озеро Ба Бе среди лесистых гор"><span class="g-badge">2–4 ночи · глушь</span></div>
+                        <div class="g-body">
+                            <h3>Озеро Ба Бе</h3>
+                            <div class="g-coords">22.3986, 105.6117</div>
+                            <div class="g-story">
+                                <p>Единственное настоящее горное озеро севера: 8 километров изумрудной воды в национальном парке, по берегам — деревни на сваях. Живёте в хомстее у самой воды, утром — лодка к водопаду Дынгден и в пещеру Пуонг, где река уходит под скалу.</p>
+                                <p>Это «пере-остановка», а не база: интернет слабый, банкоматов нет — только наличные. Зато вечером — рисовое вино с семьёй хозяев и ни одного тура вокруг.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>хомстеи на сваях $10–20</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="warn">слабый — только «асинхронно»</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>4–5 ч из Ханоя, красиво через Тхай Нгуен</b></div>
+                                <div class="g-cell"><span>Бонус</span><b class="gold">по пути туда-обратно — Бак Сон</b></div>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.3986,105.6117">📍 Озеро Ба Бе на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.4119,105.6353">Водопад Дынгден</a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="g-sec" id="g-terraces">
+                    <span class="g-secno">03 · ЗОЛОТОЙ СЕЗОН</span>
+                    <h2>Террасы и горы</h2>
+                    <p class="g-sub">Вторая половина сентября — начало октября — единственные две недели, когда террасы севера горят золотом перед жатвой. Планируйте горы именно на этот отрезок — промахнётесь на две недели, и всё скосят.</p>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/mucangchai2.jpg" alt="Террасы Му Канг Чай"><span class="g-badge">Пик золота ~20.09–10.10</span></div>
+                        <div class="g-body">
+                            <h3>Му Канг Чай</h3>
+                            <div class="g-coords">21.6372, 103.9624 (городок) · деревня Ла Пан Тань 21.6552, 103.9945</div>
+                            <div class="g-story">
+                                <p>Самые крутые и драматичные террасы Вьетнама — их рисуют на туристических плакатах, но живых туристов тут всё равно в разы меньше, чем в Сапе: ни поезда, ни аэропорта, только серпантин.</p>
+                                <p>Жить — в деревне <strong>Ла Пан Тань</strong>, а не в городке: хомстеи хмонгов прямо у знаменитого холма Мам Хой. На сам Мам Хой приходите до 6:30 утра в будний день — к 8:30 приезжают фотогруппы. А если хочется совсем без людей — боковые долины <strong>Ше Ку Нья</strong> и <strong>Де Шу Финь</strong>: те же террасы, и вы там единственные иностранцы.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>хомстеи $10–20, в золотой сезон +20–50%</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="warn">нестабильный — на 2–4 ночи</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>спальный автобус из Ханоя 8–9 ч, ~400 тыс. донгов</b></div>
+                                <div class="g-cell"><span>Байк</span><b class="ok">$6–8/день, обязателен</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">холм Мам Хой</span>
+                                <span class="g-chip">долина Ше Ку Нья</span>
+                                <span class="g-chip">Де Шу Финь</span>
+                                <span class="g-chip">рассвет с 5:30</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.6552,103.9945">📍 Ла Пан Тань на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.6372,103.9624">Городок Му Канг Чай</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.6620,103.9640">Ше Ку Нья</a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/sapa-ray.jpg" alt="Туман над рисовыми террасами в горах" style="object-position:center 60%"><span class="g-badge">Окно закрывается — ехать сейчас</span></div>
+                        <div class="g-body">
+                            <h3>Й Ты</h3>
+                            <div class="g-coords">22.6560, 103.7360 · провинция Лаокай, уезд Бат Шат</div>
+                            <div class="g-story">
+                                <p>Долина на высоте 2000 метров у китайской границы, куда ведёт узкий горный серпантин. Сюда не возят однодневки — и потому Й Ты остаётся тем, чем Сапа была двадцать лет назад. Живут здесь народы ха ни и хмонги, в традиционных земляных домах.</p>
+                                <p>Фишка Й Ты — <strong>«охота за облаками»</strong>: на рассвете облака стелются <em>ниже</em> хребта, и вы пьёте кофе буквально над морем облаков. Лучшие точки — у деревень Нгай Тхау и А Лу, где террасы начинаются прямо от порога хомстея, и пик Лао Тхань. Террасы зреют чуть позже нижних долин: пик — вторая половина сентября — начало октября. Хомстеев мало, на фестиваль золотого сезона 2026 года бронировать заранее.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>земляные дома ха ни, $10–25</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="warn">слабый — 2–3 ночи</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>экспресс до Лаокая + 3–4 ч серпантина от Бат Шата</b></div>
+                                <div class="g-cell"><span>Ночью</span><b class="warn">+8…12 °C — тёплая кофта</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">облака ниже хребта</span>
+                                <span class="g-chip">пик Лао Тхань</span>
+                                <span class="g-chip">Нгай Тхау</span>
+                                <span class="g-chip">А Лу</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.6560,103.7360">📍 Й Ты на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.6450,103.7120">Пик Лао Тхань</a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/bacson.jpg" alt="Карстовая долина Бак Сон с мозаикой рисовых полей"><span class="g-badge">Самое нетуристическое</span></div>
+                        <div class="g-body">
+                            <h3>Бак Сон</h3>
+                            <div class="g-coords">21.6397, 106.2950 · провинция Ланг Шон</div>
+                            <div class="g-story">
+                                <p>Не террасы, а широкая карстовая котловина: мозаика полей (золотых, зелёных и только что засеянных — урожай здесь снимают дважды в год) между крутых известняковых стен, у подножия — деревни на сваях народов тхай и нунг. Путеводители пишут: «какой была Сапа 20 лет назад».</p>
+                                <p>Главное событие — рассвет на смотровой <strong>На Лай</strong>: 1200 каменных ступеней, 40–50 минут подъёма, и на вершине вы либо один, либо ещё пара человек — даже в сезон на рассвете тут меньше двадцати душ. Дорога из Ханоя — прямой автобус 4–5 часов. В конце сентября — середине октября поля уже пёстрые, а к ноябрю — сплошь золотые.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>гестхаусы 200–350 тыс. донгов</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b>в городке — норм, деревни — слабо</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>прямой автобус из Ханоя (Зиап Бат, Мидинь), 4–5 ч</b></div>
+                                <div class="g-cell"><span>Вход</span><b class="ok">бесплатно, круглосуточно</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">смотровая На Лай</span>
+                                <span class="g-chip">деревни тхай и нунгов</span>
+                                <span class="g-chip">мозаика полей</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.6397,106.2950">📍 Бак Сон на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=21.6360,106.3030">Смотровая На Лай</a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/maichau.jpg" alt="Рисовые поля долины Май Чау"><span class="g-badge">Медленная жизнь</span></div>
+                        <div class="g-body">
+                            <h3>Май Чау и Май Хить</h3>
+                            <div class="g-coords">20.9580, 104.9740 (Май Чау) · Май Хить 20.9370, 105.0410</div>
+                            <div class="g-story">
+                                <p>Широкая зелёная долина в 140 км от Ханоя — полная противоположность горным серпантинам. Плоские поля, буйволы, дома на сваях белых тхайев, ткацкие станки во дворах. В Май Чау легко прожить неделю, ни разу не садясь на байк: всё живёт вокруг велодорожек.</p>
+                                <p>В самой долине Май Чау деревня Лак Сон уже раскручена, поэтому живите чуть восточнее — в <strong>Май Хить</strong>: бамбуковый рафтинг по ручью Ся, водопад Пунг, пещеры, и по вечерам — ужин у огня с рисовым вином. Осень — лучший треккинговый сезон в этих местах.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>дома на сваях $12–25, есть «комфорт»</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="ok">в хомстеях — стабильный</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>3–3,5 ч из Ханоя через перевал Тхунг Кхе</b></div>
+                                <div class="g-cell"><span>Сезон</span><b class="gold">осень — рай для треккинга</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">перевал Тхунг Кхе</span>
+                                <span class="g-chip">рафтинг по ручью Ся</span>
+                                <span class="g-chip">водопад Пунг</span>
+                                <span class="g-chip">ткачество тхайев</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.9370,105.0410">📍 Май Хить на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.9580,104.9740">Долина Май Чау</a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="g-sec" id="g-towns">
+                    <span class="g-secno">04 · ГОРОДА</span>
+                    <h2>Города поменьше</h2>
+                    <p class="g-sub">Между деревнями и Ханоем — два городка, где можно осесть подольше: с кафе, стабильным интернетом и нормальным жильём, но без столичного шума.</p>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/hagiang-river.jpg" alt="Река среди гор провинции Ха Ганг"><span class="g-badge">База на 2–4 недели</span></div>
+                        <div class="g-body">
+                            <h3>Ха Ганг (город)</h3>
+                            <div class="g-coords">22.8270, 104.9785 · одноимённая провинция</div>
+                            <div class="g-story">
+                                <p>Городок на реке Ло — самая дешёвая точка жизни на севере (дешевле Ханоя, Дананга и даже Чиангмая) и правильный штаб для всего северо-востока. Центр вокруг улицы Нгуен Чай — кафе, гестхаусы, конторы проката байков; если нужен покой — селийтесь ближе к берегу реки, 10 минут пешком до всего.</p>
+                                <p>Интернет для работы адекватен: почта, чаты, короткие звонки — да; многочасовые видеозвонки в вечерний пик (19–22) — рискованно, держите Viettel-резерв. Жильё ищите на месте: при сроке от двух недель гестхаусы охотно дают скидку. Отсюда — <strong>классический «луп» Ха Ганга на 4–5 дней</strong>: Донг Ван, плато карстов, дорога Ма Пи Ленг вдоль каньона — одна из красивейших дорог Азии. А еще из города — радиалки в деревни Ма Ле и Лунг Вай (чайные деревья шан туэт, 12 км) и Кхау Вай (бамбуковый паром через каньон) — но там глушь и сети нет, только на 2–3 ночи.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>гестхаусы $8–15/ночь, месячные — по договорённости</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="ok">город — да, вечерний пик — нет</b></div>
+                                <div class="g-cell"><span>Пермит</span><b class="warn">приграничная зона — оформляется в городе</b></div>
+                                <div class="g-cell"><span>Байк</span><b class="ok">$6–8/день, на месте</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">луп Ха Ганга</span>
+                                <span class="g-chip">Донг Ван — воскресный рынок</span>
+                                <span class="g-chip">дорога Ма Пи Ленг</span>
+                                <span class="g-chip">чайные деревья Лунг Вай</span>
+                            </div>
+                            <figure class="g-banner">
+                                <img src="guide_assets/mapileng.jpg" alt="Серпантин дороги Ма Пи Ленг над каньоном">
+                                <figcaption>Дорога Ма Пи Ленг — дневная радиалка из Ха Ганга</figcaption>
+                            </figure>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=22.8270,104.9785">📍 Ха Ганг на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=23.2744,105.0227">Донг Ван</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=23.2200,105.0600">Дорога Ма Пи Ленг</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=23.3250,105.0300">Деревня Ма Ле</a>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="g-pcard">
+                        <div class="g-ph"><img src="guide_assets/mocchau.jpg" alt="Чайные холмы Мок Чау"><span class="g-badge">Апгрейд комфорта</span></div>
+                        <div class="g-body">
+                            <h3>Мок Чау</h3>
+                            <div class="g-coords">20.8410, 104.7540 · провинция Шон Ла</div>
+                            <div class="g-story">
+                                <p>Плато с чайными холмами, молочными фермами и сосновым лесом Бан Онг — самая «обустроенная» из тихих точек севера: отели, фармстеи и хомстеи на любой уровень, приличные кафе с горячей выпечкой. На высоте 1000+ метров здесь всегда на пару градусов прохладнее, чем в Ханое, а рассветы в чайных рядах — с туманом, как в альбоме.</p>
+                                <p>Мок Чау удобно ставить посередине маршрута — между Ханоем и Му Канг Чаем — как неделю «отдышаться»: стирка, нормальный матрас, работа на ноутбуке с видом на плантации.</p>
+                            </div>
+                            <div class="g-datarow">
+                                <div class="g-cell"><span>Жильё</span><b>самый широкий выбор жилья из «тихих»</b></div>
+                                <div class="g-cell"><span>Wi-Fi</span><b class="ok">стабильный</b></div>
+                                <div class="g-cell"><span>Дорога</span><b>4 ч из Ханоя, по пути — Май Чау</b></div>
+                                <div class="g-cell"><span>Что есть</span><b class="gold">йогурт и молоко — местный бренд</b></div>
+                            </div>
+                            <div class="g-chips">
+                                <span class="g-chip">чайные холмы</span>
+                                <span class="g-chip">сосновый лес Бан Онг</span>
+                                <span class="g-chip">водопад Дай Йем</span>
+                            </div>
+                            <div class="g-side">
+                                <a class="btn btn-primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.8410,104.7540">📍 Мок Чау на карте</a>
+                                <a class="btn btn-secondary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=20.8270,104.7580">Чайные холмы Тан Унг</a>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="g-sec" id="g-route">
+                    <span class="g-secno">05 · МАРШРУТ</span>
+                    <h2>Сборка маршрута: 2+ месяца</h2>
+                    <p class="g-sub">Главное правило сезона: сначала Ханой и карст, горы — во второй половине сентября и начале октября, когда террасы золотые. Ниже — проверенная сборка, под ваши даты можно двигать блоки.</p>
+
+                    <div class="g-timeline">
+                        <div class="g-tl"><time>1–7 сентября</time><h3>Прилёт · Старый квартал</h3><p>Первая неделя — хаос и уличная еда, смотрите квартиры вживую. E-visa и карта прибытия — заранее, до вылета.</p></div>
+                        <div class="g-tl"><time>7–25 сентября · Ханой</time><h3>База: Тэй Хо или Чук Бать</h3><p>Месячная квартира, быт, работа. Радиалки на выходных: Чисион, Тэм Дао. Первая вылазка — <strong>Й Ты</strong> (2–3 ночи, пик облаков и золота уже начался).</p></div>
+                        <div class="g-tl"><time>25 сентября – 5 октября</time><h3>Му Канг Чай</h3><p>Спальный автобус из Ханоя, 3–4 ночи в Ла Пан Тань. По пути туда или обратно — неделя в <strong>Мок Чау</strong> «на передышку». Пик золота — именно эти дни.</p></div>
+                        <div class="g-tl"><time>5–15 октября · Нинь Бинь</time><h3>Карст и вода</h3><p>Неделя между Там Коком и Ван Лонгом + 3–4 дня в <strong>Май Хить</strong>. Октябрь здесь — лучший месяц года.</p></div>
+                        <div class="g-tl"><time>15–28 октября · Ха Ганг</time><h3>Город + луп на 4–5 дней</h3><p>Дни на лупе выбирайте по погоде: после дождей серпантин Ма Пи Ленг в тумане — красиво, но скользко. Донг Ван — на воскресенье, ради рынка.</p></div>
+                        <div class="g-tl"><time>с конца октября · назад в Ханой</time><h3>Бак Сон или Ба Бе по дороге</h3><p>Обратная дорога — через карстовую котловину Бак Сон (второй урожай, к ноябрю — золото) или через озеро Ба Бе. К ноябрю на севере прохладно, сухо и ясно — ещё одна награда за то, что вы остались.</p></div>
+                    </div>
+                </div>
+
+                <div class="g-sec" id="g-practice">
+                    <span class="g-secno">06 · ПРАКТИКА</span>
+                    <h2>Практика на месте</h2>
+                    <p class="g-sub">Мелочи, которые в горах решают больше, чем путеводитель.</p>
+
+                    <div class="g-howto">
+                        <div class="g-step"><b>SIM Viettel</b><span>Лучшее покрытие в горах (Й Ты, Ха Ганг). Второй номер — резерв для звонков, когда Wi-Fi в хомстее умирает.</span></div>
+                        <div class="g-step"><b>Наличные</b><span>В Ла Пан Тань, Й Ты, Ба Бе и Кхау Вай банкоматов нет. Снимайте в Ханое / Ха Ганге / Му Канг Чае с запасом.</span></div>
+                        <div class="g-step"><b>Пермит</b><span>Для приграничных уездов (Донг Ван, Й Ты, Ма Ле) — разрешение на посещение приграничной зоны. Оформляется в туристических конторах Ха Ганга, дёшево и за полчаса.</span></div>
+                        <div class="g-step"><b>Тёплая кофта</b><span>На рассвете в горах на 8–10 градусов холоднее, чем в полдень. В Й Ты ночью может быть +10 при том, что днём +23.</span></div>
+                        <div class="g-step"><b>Погода-чек</b><span>Террасы зреют по погоде: перед бронированием горных ночёвок смотрите свежие фото урожая в Instagram по тегам мест — сдвиг до 1–2 недель.</span></div>
+                        <div class="g-step"><b>Байк</b><span>$6–8/день в городах, $60–120/мес в Ханое. Полуавтомат 110–150 cc — золотая середина для серпантинов. Шлем — всегда, в горах полиция редкая, обочины — нет.</span></div>
+                    </div>
+
+                    <h3 style="margin-top:32px; font-family:'Lora',Georgia,serif; font-size:20px;">Погода по месяцам, дневные максимумы</h3>
+                    <div class="g-tblwrap">
+                        <table>
+                            <thead><tr><th>Место</th><th class="mono">Сентябрь</th><th class="mono">Октябрь</th><th>Что важно</th></tr></thead>
+                            <tbody>
+                                <tr><td>Ханой</td><td class="mono">+25…31</td><td class="mono">+22…28</td><td>октябрь — сухо и ясно, праздник середины осени</td></tr>
+                                <tr><td>Нинь Бинь</td><td class="mono">+25…30</td><td class="mono">+22…28</td><td>октябрь–ноябрь — лучший сезон</td></tr>
+                                <tr><td>Май Чау</td><td class="mono">+24…30</td><td class="mono">+21…27</td><td>осень — сезон треккинга</td></tr>
+                                <tr><td>Му Канг Чай</td><td class="mono">+20…27</td><td class="mono">+17…24</td><td>золото ~20.09–10.10, ночью прохладно</td></tr>
+                                <tr><td>Й Ты (2000 м)</td><td class="mono">+16…21</td><td class="mono">+13…19</td><td>облака ниже хребта на рассвете, ночью до +10</td></tr>
+                                <tr><td>Ха Ганг / Донг Ван</td><td class="mono">+22…28</td><td class="mono">+19…25</td><td>в Донг Ване ночи холодные, горы — тёплая одежда</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="g-sec" id="g-sources">
+                    <span class="g-secno">07 · ИСТОЧНИКИ</span>
+                    <h2>Источники</h2>
+                    <p class="g-sub">Гайд собран не из путеводителей, а из свежих блогов и гидов длительного проживания. Всё, что здесь написано, можно проверить:</p>
+                    <div class="g-src">
+                        <ul>
+                            <li><a target="_blank" rel="noopener" href="https://www.this-is-vietnam.com/hanoi-neighborhoods-for-nomads/">This is Vietnam — районы Ханоя для номадов</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietnamkb.com/regions/hanoi-tay-ho">Vietnam Knowledge — гид по Тэй Хо</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://nestliving.vn/hanoi-living-old-quarter-vs-tay-ho-expats-tourists-delight/">Nest Living — Старый квартал против Тэй Хо</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://ru.riderchris.com/hanoi-travel-guide-your-northern-vietnam-base-camp/">Rider Chris (рус.) — Ханой как базовый лагерь</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietnamspot.ru/blog/vietnam-arenda-zhilya">VietnamSpot (рус.) — аренда жилья во Вьетнаме 2026</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://well-travel.net/ru/articles/long-term-rentals-in-vietnam-complete-guide-2026">Well Travel (рус.) — долгосрочная аренда</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietnamspot.ru/blog/ninh-binh-general">VietnamSpot (рус.) — гид по Ниньбиню</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://looptrails.com/guide/ha-giang-for-digital-nomads/">Loop Trails — Ха Ганг для номадов</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://looptrails.com/guide/dong-van-travel-guide/">Loop Trails — Донг Ван</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietnamunlock.com/mu-cang-chai-travel-guide/">Vietnam Unlock — Му Канг Чай без толп Сапы</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://www.originvietnam.com/golden-rice-season-in-mu-cang-chai/">Origin Vietnam — золотой сезон Му Канг Чай</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://www.thetraveler.org/golden-season-2026-y-ty-autumn-festival-travel-guide/">The Traveler — Й Ты, золотой сезон 2026</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietnamwayfarer.com/posts/bac-son-valley-lang-son-terraced-rice-valley">Vietnam Wayfarer — долина Бак Сон</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://www.soloinvietnam.com/locations/bac-son-valley">Solo in Vietnam — Бак Сон, практика</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://amajourneyasia.com/vietnam-travel-blogs/mai-hich-village">Ama Journey Asia — деревня Май Хить</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://localvietnam.com/ha-giang/khau-vai-ha-giang-travel-guide/">Local Vietnam — Кхау Вай и деревни Ха Ганга</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://izitour.com/en/blog/lung-vai-village">IZITOUR — чайная деревня Лунг Вай</a></li>
+                            <li><a target="_blank" rel="noopener" href="https://vietlongtravel.com/ru/news/vietnam-travel-guides/the-best-time-to-visit-hanoi-sapa-ninh-binh-halong-bay-a-seasonal-travel-guide">VietLong Travel (рус.) — погода по месяцам</a></li>
+                        </ul>
+                    </div>
+                    <p style="margin-top:24px; font-size:12.5px; color:var(--text-secondary);">Фотографии — Wikimedia Commons (свободные лицензии). Координаты ориентировочные — ведут на нужные деревни и viewpoints. Цены — осень 2026, уточняйте на месте.</p>
                 </div>
             </section>
         </main>

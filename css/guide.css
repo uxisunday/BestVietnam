@@ -1,0 +1,516 @@
+/* ============================================================
+   Гайд «Север Вьетнама: где жить» — вкладка #tab-guide.
+   Все селекторы скоуплены под #tab-guide, чтобы не конфликтовать
+   с дизайн-системой сайта (css/style.css, «тёплое стекло»).
+   Палитра — токены сайта; охристый «сезонный» акцент локальный.
+   ============================================================ */
+
+#tab-guide {
+    --guide-gold: #b8862b;
+    --guide-gold-soft: rgba(184, 134, 43, 0.14);
+    --guide-line: var(--border);
+    --guide-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+}
+
+#tab-guide .g-lede {
+    font-size: 16px;
+    line-height: 1.65;
+    max-width: 72ch;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-lede + .g-lede {
+    margin-top: 10px;
+}
+
+#tab-guide .g-lede.muted {
+    color: var(--text-secondary);
+    font-size: 14.5px;
+}
+
+/* --- факты сезона --- */
+#tab-guide .g-factrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 22px 0 30px;
+}
+
+#tab-guide .g-fact {
+    border: 1px solid var(--guide-line);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    padding: 10px 14px;
+    min-width: 160px;
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide .g-fact b {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-fact span {
+    font-family: var(--guide-mono);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    letter-spacing: 0.03em;
+}
+
+/* --- карточки районов Ханоя --- */
+#tab-guide .g-hgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+}
+
+#tab-guide .g-dcard {
+    border: 1px solid var(--guide-line);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide .g-dcard.pick {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow-soft);
+}
+
+#tab-guide .g-dcard h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-tag {
+    align-self: flex-start;
+    font-family: var(--guide-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: var(--guide-gold-soft);
+    color: var(--guide-gold);
+    border: 1px solid rgba(184, 134, 43, 0.35);
+}
+
+#tab-guide .g-dcard.pick .g-tag {
+    background: rgba(27, 122, 87, 0.12);
+    color: var(--accent);
+    border-color: rgba(27, 122, 87, 0.35);
+}
+
+#tab-guide .g-dcard p {
+    font-size: 13.5px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+
+#tab-guide .g-plus {
+    font-size: 13px;
+}
+
+#tab-guide .g-plus b {
+    color: var(--text-primary);
+}
+
+#tab-guide .g-plus .m {
+    color: var(--text-secondary);
+}
+
+#tab-guide .g-price {
+    font-family: var(--guide-mono);
+    font-size: 13px;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+#tab-guide .g-dfoot {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px dashed var(--border-strong, rgba(31, 45, 38, 0.18));
+    padding-top: 11px;
+}
+
+#tab-guide .g-coordline {
+    font-family: var(--guide-mono);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+}
+
+#tab-guide .g-mlink {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--guide-mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+#tab-guide .g-mlink:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+#tab-guide .g-pin {
+    width: 10px;
+    height: 10px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--accent);
+    transform: rotate(-45deg);
+    flex: none;
+}
+
+/* --- карточки мест --- */
+#tab-guide .g-pcard {
+    border: 1px solid var(--guide-line);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    overflow: hidden;
+    margin-top: 24px;
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide .g-ph {
+    position: relative;
+}
+
+#tab-guide .g-ph img {
+    width: 100%;
+    height: clamp(220px, 32vw, 340px);
+    object-fit: cover;
+    display: block;
+}
+
+#tab-guide .g-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    font-family: var(--guide-mono);
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    background: rgba(31, 45, 38, 0.78);
+    color: #f2e3c0;
+    border: 1px solid rgba(242, 227, 192, 0.4);
+    padding: 5px 11px;
+    border-radius: var(--radius-pill);
+    backdrop-filter: blur(3px);
+}
+
+#tab-guide .g-body {
+    padding: 20px 20px 22px;
+}
+
+#tab-guide .g-body h3 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 23px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-coords {
+    font-family: var(--guide-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 5px 0 13px;
+}
+
+#tab-guide .g-story {
+    max-width: 78ch;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-story p + p {
+    margin-top: 9px;
+}
+
+#tab-guide .g-datarow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0 22px;
+    margin-top: 18px;
+    border-top: 1px solid var(--guide-line);
+    padding-top: 13px;
+}
+
+#tab-guide .g-cell span {
+    display: block;
+    font-family: var(--guide-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+}
+
+#tab-guide .g-cell b {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-cell b.gold { color: var(--guide-gold); }
+#tab-guide .g-cell b.ok { color: var(--accent); }
+#tab-guide .g-cell b.warn { color: #b4623a; }
+
+#tab-guide .g-side {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+#tab-guide .g-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+#tab-guide .g-chip {
+    font-family: var(--guide-mono);
+    font-size: 11.5px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    padding: 4px 12px;
+    color: var(--text-secondary);
+}
+
+/* --- широкие фото-вставки --- */
+#tab-guide .g-banner {
+    margin: 20px 0 4px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--guide-line);
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide .g-banner img {
+    width: 100%;
+    height: clamp(190px, 28vw, 300px);
+    object-fit: cover;
+    display: block;
+}
+
+#tab-guide .g-banner figcaption {
+    font-family: var(--guide-mono);
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    padding: 8px 12px;
+    border-top: 1px solid var(--guide-line);
+    background: var(--bg-card);
+}
+
+/* --- таймлайн маршрута --- */
+#tab-guide .g-timeline {
+    border-left: 2px solid var(--border-strong);
+    margin: 24px 0 10px 8px;
+    padding-left: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#tab-guide .g-tl {
+    position: relative;
+}
+
+#tab-guide .g-tl::before {
+    content: "";
+    position: absolute;
+    left: -32px;
+    top: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--guide-gold);
+    border: 2px solid var(--bg-primary);
+}
+
+#tab-guide .g-tl time {
+    font-family: var(--guide-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--guide-gold);
+    display: block;
+    margin-bottom: 3px;
+}
+
+#tab-guide .g-tl h3 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-tl p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 70ch;
+}
+
+/* --- таблица погоды --- */
+#tab-guide .g-tblwrap {
+    overflow-x: auto;
+    border: 1px solid var(--guide-line);
+    border-radius: var(--radius);
+    margin-top: 20px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 540px;
+    font-size: 13.5px;
+}
+
+#tab-guide th,
+#tab-guide td {
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--guide-line);
+}
+
+#tab-guide th {
+    font-family: var(--guide-mono);
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+#tab-guide tr:last-child td {
+    border-bottom: none;
+}
+
+#tab-guide td.mono,
+#tab-guide th.mono {
+    font-family: var(--guide-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* --- шаги «как снять жильё» / практика --- */
+#tab-guide .g-howto {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 18px;
+}
+
+#tab-guide .g-howto .g-step {
+    border: 1px solid var(--guide-line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    padding: 14px 16px;
+    font-size: 14px;
+    box-shadow: var(--shadow-soft);
+}
+
+#tab-guide .g-howto .g-step b {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+#tab-guide .g-howto .g-step span {
+    color: var(--text-secondary);
+}
+
+/* --- источники --- */
+#tab-guide .g-src {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+#tab-guide .g-src ul {
+    margin-top: 10px;
+    list-style: none;
+}
+
+#tab-guide .g-src li {
+    margin-bottom: 6px;
+}
+
+#tab-guide .g-src li::before {
+    content: "— ";
+    color: var(--border-strong);
+}
+
+#tab-guide .g-src a {
+    color: var(--accent);
+}
+
+#tab-guide .g-src a:hover {
+    color: var(--accent-hover);
+}
+
+/* --- заголовки разделов внутри гайда --- */
+#tab-guide .g-sec {
+    margin-top: 36px;
+}
+
+#tab-guide .g-sec > h2 {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+#tab-guide .g-secno {
+    font-family: var(--guide-mono);
+    font-size: 12px;
+    color: var(--guide-gold);
+    letter-spacing: 0.09em;
+    display: block;
+    margin-bottom: 2px;
+}
+
+#tab-guide .g-sub {
+    color: var(--text-secondary);
+    font-size: 14px;
+    max-width: 72ch;
+    margin-bottom: 20px;
+}
+
+/* --- адаптив --- */
+@media (max-width: 900px) {
+    #tab-guide .g-datarow {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    #tab-guide .g-datarow {
+        grid-template-columns: 1fr;
+    }
+    #tab-guide .g-body {
+        padding: 16px;
+    }
+    #tab-guide .g-ph img {
+        height: 200px;
+    }
+}
